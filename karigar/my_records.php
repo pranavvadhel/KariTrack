@@ -27,6 +27,7 @@ $grand_total = 0;
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="shortcut icon" href="../image/karitrack.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Work</title>

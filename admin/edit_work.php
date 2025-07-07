@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html>
 <head>
+  <link rel="shortcut icon" href="../abc/image/karitrack.png">
   <title>Edit Work Entry</title>
   <link rel="stylesheet" href="style.css">
 </head>
