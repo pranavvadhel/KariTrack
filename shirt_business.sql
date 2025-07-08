@@ -49,7 +49,10 @@ CREATE TABLE `categories` (
 -- Dumping data for table `categories`
 --
 
-
+INSERT INTO `categories` (`id`, `name`, `price`) VALUES
+(3, 'cuff', 10.00),
+(4, 'collar', 5.00),
+(5, 'button patti', 1.20);
 
 -- --------------------------------------------------------
 
@@ -83,6 +86,8 @@ CREATE TABLE `karigars` (
 -- Dumping data for table `karigars`
 --
 
+INSERT INTO `karigars` (`id`, `name`, `email`, `mobile`, `password`, `role`) VALUES
+(1, 'Pranav', 'pd@gmail.com', '9586121212', '$2y$10$Y6BTGRqdaYVTAEpyGLRpbO54qbrpPHhXsxLKDfQbuSOXC1BKenW4u', 'karigar');
 
 -- --------------------------------------------------------
 

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db.php';
+include __DIR__ . '/db.php';
 
 $error = '';
 $success = '';
@@ -30,11 +30,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $stmt->bind_param("sssss", $name, $email, $mobile, $hashed_password, $role);
 
       if ($stmt->execute()) {
-        $_SESSION['karigar_id'] = $stmt->insert_id;
-        $_SESSION['name'] = $name;
-        $_SESSION['role'] = $role;
-
-        header("Location: karigar/k_dashboard.php");
+        $success = "Signup successful. You can now log in.";
+        header("Location: index.php");
         exit;
       } else {
         $error = "Something went wrong. Please try again.";
@@ -48,7 +45,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="shortcut icon" href="../abc/image/karitrack.png">
   <meta charset="UTF-8">
   <title>Signup - KariTrack</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -60,6 +56,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h4 class="text-center mb-4">🧵 KariTrack Signup</h4>
         <?php if ($error): ?>
           <div class="alert alert-danger"><?= $error ?></div>
+        <?php elseif ($success): ?>
+          <div class="alert alert-success"><?= $success ?></div>
         <?php endif; ?>
         <form method="POST" action="">
           <div class="mb-3">
@@ -76,15 +74,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
           </div>
           <div class="mb-3">
             <label class="form-label">Password</label>
-            <input type="password" name="password" id="password" class="form-control" required>
+            <input type="password" name="password" class="form-control" required>
           </div>
           <div class="mb-3">
             <label class="form-label">Confirm Password</label>
-            <input type="password" name="confirm_password" id="confirm_password" class="form-control" required>
-          </div>
-          <div class="form-check mb-3">
-            <input type="checkbox" class="form-check-input" id="showPasswordToggle">
-            <label class="form-check-label" for="showPasswordToggle">Show Password</label>
+            <input type="password" name="confirm_password" class="form-control" required>
           </div>
           <button type="submit" class="btn btn-success w-100">Sign Up</button>
         </form>
@@ -94,16 +88,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
     </div>
   </div>
-
-  <script>
-    const toggle = document.getElementById("showPasswordToggle");
-    toggle.addEventListener("change", function () {
-      const password = document.getElementById("password");
-      const confirm = document.getElementById("confirm_password");
-      const type = this.checked ? "text" : "password";
-      password.type = type;
-      confirm.type = type;
-    });
-  </script>
 </body>
 </html>

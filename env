@@ -1,0 +1,9 @@
+DB_HOST=sql200.infinityfree.com
+DB_USER=if0_39418927
+DB_PASS=9098Millie
+DB_NAME=if0_39418927_shirt_business
+
+# DB_HOST=localhost
+# DB_USER=demo
+# DB_PASS=112203
+# DB_NAME=shirt_business

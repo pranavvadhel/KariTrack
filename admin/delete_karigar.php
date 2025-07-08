@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+include __DIR__ . '/../db.php';
 
 if (isset($_GET['id'])) {
     $id = intval($_GET['id']);

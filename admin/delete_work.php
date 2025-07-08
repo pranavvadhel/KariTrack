@@ -4,7 +4,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
   header("Location: a_dashboard.php");
   exit();
 }
-include __DIR__ . '/db.php';
+include __DIR__ . '/../db.php';
 
 if (!isset($_GET['id']) || !isset($_GET['karigar_id'])) {
   echo "Missing parameters.";

@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+include __DIR__ . '/../db.php';
 $name = $_POST['name'];
 $phone = $_POST['phone'];
 $address = $_POST['address'];

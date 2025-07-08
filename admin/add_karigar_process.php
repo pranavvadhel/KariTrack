@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+include __DIR__ . '/../db.php';
 
 $name = $_POST['karigar_name'];
 $phone = $_POST['karigar_phone'];
@@ -17,8 +17,9 @@ if ($check_result->num_rows > 0) {
 }
 
 // Insert new karigar
-$stmt = $conn->prepare("INSERT INTO karigars (name, mobile, email) VALUES (?, ?, ?)");
-$stmt->bind_param("sss", $name, $phone, $email);
+$password = password_hash('default123', PASSWORD_DEFAULT);
+$stmt = $conn->prepare("INSERT INTO karigars (name, mobile, email, password) VALUES (?, ?, ?, ?)");
+$stmt->bind_param("ssss", $name, $phone, $email, $password);
 $stmt->execute();
 
 header("Location: view_karigars.php");

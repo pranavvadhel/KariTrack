@@ -1,6 +1,9 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
-include '../common/db.php';
+include __DIR__ . '/../db.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'karigar') {
   header("Location: ../k_dashboard.php");
@@ -45,7 +48,6 @@ $entries = $conn->query("
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="shortcut icon" href="../image/karitrack.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Karigar Dashboard</title>

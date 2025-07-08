@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+include __DIR__ . '/../db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $karigar_id = $_POST['karigar_id'];
