@@ -2,7 +2,7 @@
   <h4>🧵 My Panel</h4>
   <a href="k_dashboard.php">Dashboard</a>
   <a href="my_records.php">My Work</a>
-  <a href="../logout.php">Logout</a>
+  <a href="../logout.php" class="logout">Logout</a>
 </div>
 
 <style>
@@ -31,5 +31,10 @@
     .content {
     margin-left: 220px;
     padding: 20px;
+}
+.logout{
+  background-color: #dc3545;
+  color: white;
+  text-align: center;
 }
 </style>  

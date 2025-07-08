@@ -6,7 +6,7 @@
   <a href="work_entry.php">Add Work</a>
   <a href="reports.php">Performance</a>
   <a href="edit_category.php">Edit Categories</a>
-  <a href="../logout.php">Logout</a>
+  <a href="../logout.php" class="logout">Logout</a>
 </div>
 <style>
     .sidebar {
@@ -34,5 +34,10 @@
     .content {
     margin-left: 220px;
     padding: 20px;
+}
+.logout{
+  background-color: #dc3545;
+  color: white;
+  text-align: center;
 }
 </style>  
