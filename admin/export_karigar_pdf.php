@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/../tcpdf/tcpdf.php';
 
-include 'db.php';
+include __DIR__ . '/../db.php';
 
 $id = intval($_GET['id']);
 $filter = $_GET['filter'] ?? 'all';

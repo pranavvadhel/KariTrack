@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+include __DIR__ . '/../db.php';
 
 if (isset($_POST['category_id'])) {
     $category_id = intval($_POST['category_id']);

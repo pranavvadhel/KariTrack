@@ -1,5 +1,5 @@
 <?php
-include 'db.php';
+include __DIR__ . '/../db.php';
 $karigar_id = $_POST['karigar_id'];
 $date = $_POST['date'];
 $category = $_POST['category'];

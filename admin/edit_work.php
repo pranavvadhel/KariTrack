@@ -4,7 +4,7 @@ if (!isset($_SESSION['admin_logged_in'])) {
   header("Location: a_dashboard.php");
   exit();
 }
-include __DIR__ . '/db.php';
+include __DIR__ . '/../db.php';
 
 if (!isset($_GET['id'])) {
   echo "No entry ID.";
@@ -36,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="shortcut icon" href="../abc/image/karitrack.png">
   <title>Edit Work Entry</title>
   <link rel="stylesheet" href="style.css">
 </head>

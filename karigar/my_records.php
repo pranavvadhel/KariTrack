@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '../common/db.php';
+include __DIR__ . '/../db.php';
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'karigar') {
   header("Location: ../k_dashboard.php");
@@ -27,7 +27,6 @@ $grand_total = 0;
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="shortcut icon" href="../image/karitrack.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Work</title>

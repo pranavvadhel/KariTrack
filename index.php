@@ -1,6 +1,9 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
-include 'db.php';
+include __DIR__ . '/db.php';
 
 $error = '';
 
@@ -48,7 +51,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="shortcut icon" href="../abc/image/karitrack.png">
   <meta charset="UTF-8">
   <title>Login - KariTrack</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />

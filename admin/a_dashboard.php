@@ -1,4 +1,9 @@
-<?php include 'db.php'; ?>
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+include __DIR__ . '/../db.php';
+?>
 <?php
 session_start();
 
@@ -77,7 +82,6 @@ while ($row = $result_all->fetch_assoc()) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="shortcut icon" href="../image/karitrack.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KariTrack - Dashboard</title>
