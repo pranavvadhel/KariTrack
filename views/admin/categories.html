@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KariTrack - Edit Categories</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-content">
+  <div class="topbar">
+    <h1>🏷️ Manage Categories</h1>
+  </div>
+
+  <div id="alert-box"></div>
+
+  <!-- Add New Category -->
+  <div class="form-card mb-28">
+    <h3 style="margin-bottom:16px; font-size:1rem;">Add New Category</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category Name</label>
+        <input type="text" id="newCatName" class="form-control" placeholder="e.g. Cuff, Collar..."/>
+      </div>
+      <div class="form-group">
+        <label>Price (₹)</label>
+        <input type="number" id="newCatPrice" class="form-control" step="0.01" min="0" placeholder="0.00"/>
+      </div>
+      <div class="form-group" style="justify-content:flex-end;">
+        <button class="btn btn-success" onclick="addCategory()">Add Category</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categories Table -->
+  <div class="table-wrapper">
+    <div class="table-header">
+      <h3>All Categories</h3>
+      <span id="catCount" style="color:var(--text-muted); font-size:0.85rem;"></span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Category Name</th><th>Price (₹)</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="catTableBody">
+          <tr><td colspan="4"><div class="loading"><div class="spinner"></div> Loading...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>🗑️ Delete Category</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <p style="color:var(--text-muted); margin-bottom:20px;">Are you sure you want to delete this category?</p>
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDelete">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('categories');
+  let deleteId = null;
+  let categories = [];
+
+  async function loadCategories() {
+    categories = await apiGet('/api/categories') || [];
+    document.getElementById('catCount').textContent = `${categories.length} categories`;
+    const tbody = document.getElementById('catTableBody');
+
+    if (categories.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state" style="padding:30px"><div class="empty-icon">🏷️</div><p>No categories yet.</p></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = categories.map((c, i) => `
+      <tr id="row-${c.id}">
+        <td>${i + 1}</td>
+        <td>
+          <input type="text" id="name-${c.id}" class="form-control" value="${c.name}" style="max-width:200px"/>
+        </td>
+        <td>
+          <input type="number" id="price-${c.id}" class="form-control" value="${c.price}" step="0.01" style="max-width:120px"/>
+        </td>
+        <td style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="updateCategory(${c.id})">✅ Update</button>
+          <button class="btn btn-danger btn-sm" onclick="openDeleteModal(${c.id})">🗑️ Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function addCategory() {
+    const name = document.getElementById('newCatName').value.trim();
+    const price = document.getElementById('newCatPrice').value;
+    if (!name || !price) {
+      showAlert('alert-box', 'Please enter name and price', 'danger');
+      return;
+    }
+    const result = await apiPost('/admin/categories/add', { category_name: name, price });
+    if (result.success) {
+      document.getElementById('newCatName').value = '';
+      document.getElementById('newCatPrice').value = '';
+      showAlert('alert-box', 'Category added successfully!', 'success');
+      loadCategories();
+    } else {
+      showAlert('alert-box', result.error || 'Failed to add category', 'danger');
+    }
+  }
+
+  async function updateCategory(id) {
+    const name = document.getElementById(`name-${id}`).value.trim();
+    const price = document.getElementById(`price-${id}`).value;
+    const result = await apiPost('/admin/categories/update', { category_id: id, category_name: name, price });
+    if (result.success) {
+      showAlert('alert-box', 'Category updated!', 'success');
+    } else {
+      showAlert('alert-box', result.error || 'Failed to update', 'danger');
+    }
+  }
+
+  function openDeleteModal(id) {
+    deleteId = id;
+    document.getElementById('deleteModal').classList.add('show');
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+    deleteId = null;
+  }
+
+  document.getElementById('confirmDelete').addEventListener('click', async () => {
+    if (!deleteId) return;
+    const result = await apiPost(`/admin/categories/delete/${deleteId}`, {});
+    closeDeleteModal();
+    if (result.success) {
+      showAlert('alert-box', 'Category deleted!', 'success');
+      loadCategories();
+    } else {
+      showAlert('alert-box', 'Failed to delete category', 'danger');
+    }
+  });
+
+  loadCategories();
+</script>
+</body>
+</html>

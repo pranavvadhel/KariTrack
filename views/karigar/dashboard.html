@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KariTrack - My Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <div class="topbar">
+      <h1 id="welcomeMsg">👋 Welcome!</h1>
+      <div class="user-badge">
+        <div class="badge-avatar" id="avatarInit">K</div>
+        <span id="userNameBadge">Karigar</span>
+      </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="form-card mb-28">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Time Period</label>
+          <select id="filterSel" class="form-select" onchange="loadDashboard()">
+            <option value="weekly">Last 7 Days</option>
+            <option value="monthly">This Month</option>
+            <option value="all">All Time</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card-grid" id="statsGrid" style="grid-template-columns: 1fr 1fr;">
+      <div class="loading">
+        <div class="spinner"></div> Loading...
+      </div>
+    </div>
+
+    <!-- Recent Work Table -->
+    <div class="table-wrapper mt-20">
+      <div class="table-header">
+        <h3>📋 Recent Work Entries</h3>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Category</th>
+              <th>Quantity</th>
+              <th>Price/Item</th>
+              <th>Total</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="recentBody">
+            <tr>
+              <td colspan="6">
+                <div class="loading">
+                  <div class="spinner"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    document.getElementById('sidebar-container').innerHTML = renderKarigarSidebar('dashboard');
+
+    async function init() {
+      const me = await apiGet('/api/me');
+      if (me) {
+        document.getElementById('welcomeMsg').textContent = `👋 Welcome, ${me.name}!`;
+        document.getElementById('userNameBadge').textContent = me.name;
+        document.getElementById('avatarInit').textContent = me.name.charAt(0).toUpperCase();
+      }
+      loadDashboard();
+    }
+
+    async function loadDashboard() {
+      const filter = document.getElementById('filterSel').value;
+      const data = await apiGet(`/api/karigar-stats?filter=${filter}`);
+      if (!data) return;
+
+      document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card green">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">${formatCurrency(data.totalAmount)}</div>
+        <div class="stat-label">Total Earned</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">${(data.totalItems || 0).toLocaleString()}</div>
+        <div class="stat-label">Items Completed</div>
+      </div>
+    `;
+
+      const tbody = document.getElementById('recentBody');
+      if (!data.entries || data.entries.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state" style="padding:30px"><div class="empty-icon">📋</div><p>No entries found.</p></div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.entries.map((r, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${r.category_name}</td>
+        <td>${r.quantity}</td>
+        <td>${formatCurrency(r.price_per_item)}</td>
+        <td>${formatCurrency(r.total)}</td>
+        <td>${formatDate(r.date)}</td>
+      </tr>
+    `).join('');
+    }
+
+    init();
+  </script>
+</body>
+
+</html>

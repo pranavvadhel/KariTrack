@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KariTrack - View Karigars</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div id="sidebar-container"></div>
+
+<div class="main-content">
+  <div class="topbar">
+    <h1>👷 All Karigars</h1>
+    <a href="/admin/add-karigar" class="btn btn-primary">➕ Add Karigar</a>
+  </div>
+
+  <div id="alert-box"></div>
+
+  <div class="table-wrapper">
+    <div class="table-header">
+      <h3>Karigar List</h3>
+      <div class="search-input-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="form-control" placeholder="Search by name, phone, email..." oninput="loadKarigars()"/>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="karigarTableBody">
+          <tr><td colspan="5"><div class="loading"><div class="spinner"></div> Loading...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>⚠️ Confirm Delete</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <p style="color:var(--text-muted); margin-bottom:20px;">Are you sure you want to delete this karigar? This action cannot be undone.</p>
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('karigars');
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('success')) showAlert('alert-box', decodeURIComponent(params.get('success')).replace(/\+/g,' '), 'success');
+  if (params.get('error')) showAlert('alert-box', decodeURIComponent(params.get('error')).replace(/\+/g,' '), 'danger');
+
+  let deleteId = null;
+
+  async function loadKarigars() {
+    const search = document.getElementById('searchInput').value;
+    const data = await apiGet(`/api/karigars?search=${encodeURIComponent(search)}`);
+    const tbody = document.getElementById('karigarTableBody');
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👷</div><p>No karigars found.</p></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.map((k, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><a href="/admin/karigar-profile/${k.id}" class="text-primary">${k.name}</a></td>
+        <td>${k.mobile || '-'}</td>
+        <td>${k.email}</td>
+        <td>
+          <a href="/admin/edit-karigar/${k.id}" class="btn btn-warning btn-sm">✏️ Edit</a>
+          <button class="btn btn-danger btn-sm" onclick="openDeleteModal(${k.id})">🗑️ Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function openDeleteModal(id) {
+    deleteId = id;
+    document.getElementById('deleteModal').classList.add('show');
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+    deleteId = null;
+  }
+
+  document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    if (!deleteId) return;
+    const result = await apiPost(`/admin/delete-karigar/${deleteId}`, {});
+    closeDeleteModal();
+    if (result.success) {
+      showAlert('alert-box', 'Karigar deleted successfully!', 'success');
+      loadKarigars();
+    } else {
+      showAlert('alert-box', 'Failed to delete karigar.', 'danger');
+    }
+  });
+
+  loadKarigars();
+</script>
+</body>
+</html>

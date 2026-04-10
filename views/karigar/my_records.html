@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KariTrack - My Work Records</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-content">
+  <div class="topbar">
+    <h1>📋 My Work Records</h1>
+  </div>
+
+  <!-- Summary -->
+  <div class="card-grid" id="summaryGrid" style="grid-template-columns:1fr 1fr; margin-bottom:24px;">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <div class="table-header">
+      <h3>All Work Entries</h3>
+      <span id="entryCount" style="color:var(--text-muted); font-size:0.85rem;"></span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Category</th><th>Quantity</th><th>Price/Item</th><th>Total</th><th>Date</th></tr>
+        </thead>
+        <tbody id="recordsBody">
+          <tr><td colspan="6"><div class="loading"><div class="spinner"></div> Loading...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('sidebar-container').innerHTML = renderKarigarSidebar('my-records');
+
+  async function loadRecords() {
+    const data = await apiGet('/api/karigar-records');
+    if (!data) return;
+
+    document.getElementById('entryCount').textContent = `${data.length} entries`;
+
+    let grandTotal = 0, totalQty = 0;
+    data.forEach(r => { grandTotal += parseFloat(r.total); totalQty += parseInt(r.quantity); });
+
+    document.getElementById('summaryGrid').innerHTML = `
+      <div class="stat-card green">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">${formatCurrency(grandTotal)}</div>
+        <div class="stat-label">Grand Total Earned</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">${totalQty.toLocaleString()}</div>
+        <div class="stat-label">Total Items Done</div>
+      </div>
+    `;
+
+    const tbody = document.getElementById('recordsBody');
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state" style="padding:40px"><div class="empty-icon">📋</div><p>No work records yet.</p></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.map((r, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${r.category_name}</td>
+        <td>${r.quantity}</td>
+        <td>${formatCurrency(r.price_per_item)}</td>
+        <td>${formatCurrency(r.total)}</td>
+        <td>${formatDate(r.date)}</td>
+      </tr>
+    `).join('');
+
+    // Add grand total row
+    tbody.innerHTML += `
+      <tr class="grand-total-row">
+        <td colspan="4" style="text-align:right;">Grand Total</td>
+        <td>${formatCurrency(grandTotal)}</td>
+        <td></td>
+      </tr>
+    `;
+  }
+
+  loadRecords();
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KariTrack - Performance Report</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-content">
+  <div class="topbar">
+    <h1>📈 Performance Report</h1>
+  </div>
+
+  <!-- Filters -->
+  <div class="form-card mb-28">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Karigar</label>
+        <select id="karigarFilter" class="form-select">
+          <option value="0">All Karigars</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Time Period</label>
+        <select id="timeFilter" class="form-select" onchange="toggleCustomDates()">
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="custom">Custom Range</option>
+        </select>
+      </div>
+      <div class="form-group" id="fromGroup" style="display:none">
+        <label>From</label>
+        <input type="date" id="fromDate" class="form-control"/>
+      </div>
+      <div class="form-group" id="toGroup" style="display:none">
+        <label>To</label>
+        <input type="date" id="toDate" class="form-control"/>
+      </div>
+      <div class="form-group" style="justify-content:flex-end;">
+        <button class="btn btn-primary" onclick="loadReport()">Apply Filters</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div id="summaryCards" class="card-grid mb-28" style="display:none">
+    <div class="stat-card green">
+      <div class="stat-icon">💰</div>
+      <div class="stat-value" id="sumTotal">₹0</div>
+      <div class="stat-label">Total Earned</div>
+    </div>
+    <div class="stat-card blue">
+      <div class="stat-icon">📦</div>
+      <div class="stat-value" id="sumItems">0</div>
+      <div class="stat-label">Total Items</div>
+    </div>
+    <div class="stat-card yellow">
+      <div class="stat-icon">📋</div>
+      <div class="stat-value" id="sumEntries">0</div>
+      <div class="stat-label">Total Entries</div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <div class="table-header">
+      <h3>Work Entries</h3>
+      <span id="dateRangeLabel" style="color:var(--text-muted); font-size:0.85rem;"></span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Karigar</th><th>Category</th><th>Quantity</th><th>Price/Item</th><th>Total</th><th>Date</th></tr>
+        </thead>
+        <tbody id="reportTableBody">
+          <tr><td colspan="6"><div class="loading"><div class="spinner"></div> Loading...</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('reports');
+
+  async function loadKarigars() {
+    const karigars = await apiGet('/api/karigars');
+    if (karigars) {
+      const sel = document.getElementById('karigarFilter');
+      karigars.forEach(k => sel.innerHTML += `<option value="${k.id}">${k.name}</option>`);
+    }
+  }
+
+  function toggleCustomDates() {
+    const val = document.getElementById('timeFilter').value;
+    document.getElementById('fromGroup').style.display = val === 'custom' ? 'flex' : 'none';
+    document.getElementById('toGroup').style.display = val === 'custom' ? 'flex' : 'none';
+  }
+
+  async function loadReport() {
+    const karigar_id = document.getElementById('karigarFilter').value;
+    const period = document.getElementById('timeFilter').value;
+    const from_date = document.getElementById('fromDate').value;
+    const to_date = document.getElementById('toDate').value;
+
+    let url = `/api/work-entries?karigar_id=${karigar_id}&period=${period}`;
+    if (period === 'custom' && from_date && to_date) {
+      url += `&from_date=${from_date}&to_date=${to_date}`;
+      document.getElementById('dateRangeLabel').textContent = `${from_date} to ${to_date}`;
+    } else {
+      document.getElementById('dateRangeLabel').textContent = period.charAt(0).toUpperCase() + period.slice(1);
+    }
+
+    const data = await apiGet(url);
+    const tbody = document.getElementById('reportTableBody');
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div><p>No data found for this selection.</p></div></td></tr>`;
+      document.getElementById('summaryCards').style.display = 'none';
+      return;
+    }
+
+    let totalAmt = 0, totalQty = 0;
+    tbody.innerHTML = data.map(r => {
+      totalAmt += parseFloat(r.total);
+      totalQty += parseInt(r.quantity);
+      return `<tr>
+        <td>${r.karigar_name}</td>
+        <td>${r.category_name}</td>
+        <td>${r.quantity}</td>
+        <td>${formatCurrency(r.price_per_item)}</td>
+        <td>${formatCurrency(r.total)}</td>
+        <td>${formatDate(r.date)}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('summaryCards').style.display = 'grid';
+    document.getElementById('sumTotal').textContent = formatCurrency(totalAmt);
+    document.getElementById('sumItems').textContent = totalQty.toLocaleString();
+    document.getElementById('sumEntries').textContent = data.length;
+  }
+
+  loadKarigars();
+  loadReport();
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KariTrack - Edit Karigar</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-content">
+  <div class="topbar">
+    <h1>✏️ Edit Karigar</h1>
+    <a href="/admin/karigars" class="btn btn-secondary">← Back</a>
+  </div>
+
+  <div id="alert-box"></div>
+
+  <div class="form-card" style="max-width:480px;">
+    <div id="formContainer">
+      <div class="loading"><div class="spinner"></div> Loading...</div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('karigars');
+
+  const id = location.pathname.split('/').pop();
+
+  async function loadKarigar() {
+    const karigar = await apiGet(`/api/karigars/${id}`);
+    if (!karigar) return;
+
+    document.getElementById('formContainer').innerHTML = `
+      <form id="editForm">
+        <div class="form-group mb-20">
+          <label>Karigar Name</label>
+          <input type="text" name="name" id="karigarName" class="form-control" value="${karigar.name}" required/>
+        </div>
+        <div class="form-group mb-20">
+          <label>Email <span style="color:var(--text-muted); font-weight:400">(read-only)</span></label>
+          <input type="text" class="form-control" value="${karigar.email}" readonly/>
+        </div>
+        <div class="form-group mb-20">
+          <label>Phone <span style="color:var(--text-muted); font-weight:400">(read-only)</span></label>
+          <input type="text" class="form-control" value="${karigar.mobile || ''}" readonly/>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Karigar</button>
+      </form>
+    `;
+
+    document.getElementById('editForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      btn.textContent = 'Updating...';
+      btn.disabled = true;
+
+      const form = new FormData(e.target);
+      const resp = await fetch(`/admin/edit-karigar/${id}`, { method: 'POST', body: form });
+      if (resp.redirected) location.href = resp.url;
+      else { btn.textContent = 'Update Karigar'; btn.disabled = false; }
+    });
+  }
+
+  loadKarigar();
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KariTrack - Add Work Entry</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-content">
+  <div class="topbar">
+    <h1>📝 Add Work Entry</h1>
+  </div>
+
+  <div id="alert-box"></div>
+
+  <div class="form-card" style="max-width:550px;">
+    <form method="POST" action="/admin/work-entry" id="workEntryForm">
+      <div class="form-group mb-20">
+        <label>Select Karigar</label>
+        <select name="karigar_id" id="karigarSelect" class="form-select" required>
+          <option value="">-- Select Karigar --</option>
+        </select>
+      </div>
+      <div class="form-group mb-20">
+        <label>Category</label>
+        <select name="category" id="categorySelect" class="form-select" required onchange="loadPrice()">
+          <option value="">-- Select Category --</option>
+        </select>
+      </div>
+      <div class="form-group mb-20">
+        <label>Price per Item (₹)</label>
+        <input type="number" name="price_per_item" id="priceInput" class="form-control" readonly placeholder="Auto-filled"/>
+      </div>
+      <div class="form-group mb-20">
+        <label>Quantity</label>
+        <input type="number" name="quantity" id="quantityInput" class="form-control" min="1" placeholder="Enter quantity" required oninput="calcTotal()"/>
+      </div>
+      <div class="form-group mb-20">
+        <label>Calculated Total (₹)</label>
+        <input type="number" id="totalDisplay" class="form-control" readonly placeholder="Auto-calculated"/>
+      </div>
+      <div class="form-group mb-20">
+        <label>Date</label>
+        <input type="date" name="date" id="dateInput" class="form-control" required/>
+      </div>
+      <button type="submit" class="btn btn-success">Submit Work Entry</button>
+    </form>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('work-entry');
+
+  // Set today's date
+  document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];
+
+  // Check success
+  const params = new URLSearchParams(location.search);
+  if (params.get('success')) showAlert('alert-box', 'Work entry submitted successfully!', 'success');
+  if (params.get('error')) showAlert('alert-box', decodeURIComponent(params.get('error')).replace(/\+/g,' '), 'danger');
+
+  async function loadData() {
+    const [karigars, categories] = await Promise.all([
+      apiGet('/api/karigars'),
+      apiGet('/api/categories')
+    ]);
+
+    const kSel = document.getElementById('karigarSelect');
+    karigars.forEach(k => kSel.innerHTML += `<option value="${k.id}">${k.name}</option>`);
+
+    const cSel = document.getElementById('categorySelect');
+    categories.forEach(c => cSel.innerHTML += `<option value="${c.id}" data-price="${c.price}">${c.name} (₹${c.price})</option>`);
+  }
+
+  function loadPrice() {
+    const sel = document.getElementById('categorySelect');
+    const selected = sel.options[sel.selectedIndex];
+    const price = selected ? selected.getAttribute('data-price') : '';
+    document.getElementById('priceInput').value = price || '';
+    calcTotal();
+  }
+
+  function calcTotal() {
+    const price = parseFloat(document.getElementById('priceInput').value) || 0;
+    const qty = parseInt(document.getElementById('quantityInput').value) || 0;
+    document.getElementById('totalDisplay').value = (price * qty).toFixed(2);
+  }
+
+  document.getElementById('workEntryForm').addEventListener('submit', function() {
+    const btn = this.querySelector('button');
+    btn.textContent = 'Submitting...';
+    btn.disabled = true;
+  });
+
+  loadData();
+</script>
+</body>
+</html>

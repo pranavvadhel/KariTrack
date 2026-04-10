@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KariTrack - Add Karigar</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-content">
+  <div class="topbar">
+    <h1>➕ Add Karigar</h1>
+    <a href="/admin/karigars" class="btn btn-secondary">← Back</a>
+  </div>
+
+  <div id="alert-box"></div>
+
+  <div class="form-card" style="max-width:520px;">
+    <form method="POST" action="/admin/add-karigar" id="addKarigarForm">
+      <div class="form-group mb-20">
+        <label>Karigar Name</label>
+        <input type="text" name="karigar_name" class="form-control" placeholder="Enter full name" required/>
+      </div>
+      <div class="form-group mb-20">
+        <label>Phone Number</label>
+        <input type="tel" name="karigar_phone" class="form-control" placeholder="10-digit mobile number" pattern="[0-9]{10}" maxlength="10" required/>
+      </div>
+      <div class="form-group mb-20">
+        <label>Email Address</label>
+        <input type="email" name="karigar_email" class="form-control" placeholder="Email (optional)"/>
+      </div>
+      <div style="color:var(--text-muted); font-size:0.8rem; margin-bottom:16px;">
+        ℹ️ Default password will be <strong>default123</strong>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Karigar</button>
+    </form>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('add-karigar');
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('error')) showAlert('alert-box', decodeURIComponent(params.get('error')).replace(/\+/g,' '), 'danger');
+
+  document.getElementById('addKarigarForm').addEventListener('submit', (e) => {
+    const btn = e.target.querySelector('button[type=submit]');
+    btn.textContent = 'Adding...';
+  });
+</script>
+</body>
+</html>
