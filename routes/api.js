@@ -131,21 +131,21 @@ router.get('/work-entries', requireAdmin, async (req, res) => {
 // ============ DASHBOARD STATS ============
 router.get('/dashboard-stats', requireAdmin, async (req, res) => {
   try {
-    const [totalPayments] = await db.query('SELECT SUM(total) AS total FROM work_entries');
-    const [totalItems] = await db.query('SELECT SUM(quantity) AS items FROM work_entries');
-    const [activeKarigars] = await db.query('SELECT COUNT(DISTINCT karigar_id) AS count FROM work_entries');
-    const [itemBreakdown] = await db.query(`
-      SELECT c.name AS category_name, SUM(w.quantity) as count
-      FROM work_entries w
-      JOIN categories c ON w.category = c.id
-      GROUP BY w.category
-    `);
+    const queries = [
+      db.query('SELECT SUM(total) AS total FROM work_entries'),
+      db.query('SELECT SUM(quantity) AS items FROM work_entries'),
+      db.query('SELECT COUNT(DISTINCT karigar_id) AS count FROM work_entries'),
+      db.query(`
+        SELECT c.name AS category_name, SUM(w.quantity) as count
+        FROM work_entries w
+        JOIN categories c ON w.category = c.id
+        GROUP BY w.category
+      `)
+    ];
 
-    // Filtered stats
     const { karigar_id, period, from_date, to_date } = req.query;
     let where = '1=1';
     const params = [];
-
     if (karigar_id && karigar_id !== '0') {
       where += ' AND karigar_id = ?';
       params.push(karigar_id);
@@ -159,30 +159,24 @@ router.get('/dashboard-stats', requireAdmin, async (req, res) => {
       params.push(from_date, to_date);
     }
 
-    const [filteredTotal] = await db.query(
-      `SELECT SUM(total) AS total_amount FROM work_entries WHERE ${where}`, params
-    );
+    queries.push(db.query(`SELECT SUM(total) AS total_amount FROM work_entries WHERE ${where}`, params));
+    queries.push(db.query(`
+      SELECT DATE_FORMAT(date, '%Y-%m') AS month, SUM(quantity) AS items, SUM(total) AS payment
+      FROM work_entries GROUP BY month ORDER BY month DESC LIMIT 6
+    `));
 
-    // Monthly chart data (last 6 months)
-    const [chartData] = await db.query(`
-      SELECT DATE_FORMAT(date, '%Y-%m') AS month, 
-             SUM(quantity) AS items, 
-             SUM(total) AS payment
-      FROM work_entries
-      GROUP BY DATE_FORMAT(date, '%Y-%m')
-      ORDER BY month DESC
-      LIMIT 6
-    `);
+    const results = await Promise.all(queries);
 
     res.json({
-      totalPayments: totalPayments[0].total || 0,
-      totalItems: totalItems[0].items || 0,
-      activeKarigars: activeKarigars[0].count || 0,
-      itemBreakdown,
-      filteredTotal: filteredTotal[0].total_amount || 0,
-      chartData: chartData.reverse()
+      totalPayments: results[0][0][0].total || 0,
+      totalItems: results[1][0][0].items || 0,
+      activeKarigars: results[2][0][0].count || 0,
+      itemBreakdown: results[3][0],
+      filteredTotal: results[4][0][0].total_amount || 0,
+      chartData: results[5][0].reverse()
     });
   } catch (err) {
+    console.error('Stats Error:', err);
     res.status(500).json({ error: err.message });
   }
 });
