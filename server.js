@@ -8,18 +8,29 @@ const db = require('./config/db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1);
+
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session
+// Session Persistence
+const MySQLStore = require('express-mysql-session')(session);
+const sessionStore = new MySQLStore({}, db);
+
 app.use(session({
+  key: 'karitrack_session',
   secret: process.env.SESSION_SECRET || 'karitrack_secret',
+  store: sessionStore,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
+  cookie: { 
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    secure: process.env.NODE_ENV === 'production', // true on Vercel
+    sameSite: 'lax'
+  }
 }));
 
 // View engine
