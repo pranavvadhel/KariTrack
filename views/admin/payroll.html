@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KariTrack - Payroll Management</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+</head>
+<body>
+<div id="sidebar-container"></div>
+
+<div class="main-content">
+  <div class="topbar">
+    <h1>💰 Payroll Management</h1>
+    <div class="topbar-actions">
+      <button class="btn btn-outline-primary" onclick="exportFullReport()">📊 Export Full Report</button>
+    </div>
+  </div>
+
+  <div id="alert-box"></div>
+
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Karigar Name</th>
+            <th>Unpaid Amount</th>
+            <th>Paid Amount</th>
+            <th>Work Entries</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="payrollTable">
+          <tr><td colspan="5" class="text-center">Loading payroll...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- History Modal -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal-box" style="max-width: 800px;">
+    <div class="modal-header">
+      <h3 id="modalTitle">Payment History</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="modalStats" class="mb-20"></div>
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Qty</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="historyTable"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="markPaidBtn">Mark All as Paid</button>
+      <button class="btn btn-outline-primary" id="downloadSlipBtn">Download Salary Slip</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+  document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('reports');
+
+  async function loadPayroll() {
+    const data = await apiGet('/api/payroll/summary');
+    if (!data) return;
+
+    const tbody = document.getElementById('payrollTable');
+    tbody.innerHTML = data.map(item => `
+      <tr>
+        <td><strong>${item.name}</strong><br><small class="text-muted">${item.mobile}</small></td>
+        <td class="text-danger font-bold">${formatCurrency(item.unpaid_amount)}</td>
+        <td class="text-success">${formatCurrency(item.paid_amount)}</td>
+        <td>${item.total_entries} logs</td>
+        <td>
+          <button class="btn btn-sm btn-primary" onclick="viewHistory(${item.id}, '${item.name}', ${item.unpaid_amount})">View Details</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  let currentKarigar = null;
+
+  async function viewHistory(id, name, unpaid) {
+    currentKarigar = { id, name, unpaid };
+    document.getElementById('modalTitle').textContent = `Payroll: ${name}`;
+    document.getElementById('historyModal').classList.add('show');
+    
+    const entries = await apiGet(`/api/payroll/karigar/${id}/history`);
+    const tbody = document.getElementById('historyTable');
+    
+    tbody.innerHTML = entries.map(we => `
+      <tr>
+        <td>${formatDate(we.date)}</td>
+        <td>${we.category_name}</td>
+        <td>${we.quantity}</td>
+        <td>${formatCurrency(we.total)}</td>
+        <td><span class="badge ${we.status === 'paid' ? 'badge-success' : 'badge-danger'}">${we.status.toUpperCase()}</span></td>
+      </tr>
+    `).join('');
+
+    document.getElementById('markPaidBtn').style.display = unpaid > 0 ? 'inline-block' : 'none';
+    document.getElementById('markPaidBtn').onclick = () => markAsPaid(id, unpaid);
+    document.getElementById('downloadSlipBtn').onclick = () => generatePDF(name, entries);
+  }
+
+  async function markAsPaid(id, amount) {
+    if (!confirm(`Are you sure you want to mark ${formatCurrency(amount)} as paid for ${currentKarigar.name}?`)) return;
+    
+    const res = await apiPost('/api/payroll/mark-paid', { karigar_id: id, amount });
+    if (res.success) {
+      showAlert('alert-box', res.message);
+      closeModal();
+      loadPayroll();
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('historyModal').classList.remove('show');
+  }
+
+  function generatePDF(name, entries) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    doc.setFontSize(20);
+    doc.text('KariTrack Salary Slip', 14, 22);
+    doc.setFontSize(12);
+    doc.text(`Employee Name: ${name}`, 14, 32);
+    doc.text(`Generated On: ${new Date().toLocaleDateString()}`, 14, 38);
+
+    const tableData = entries.map(e => [
+      formatDate(e.date),
+      e.category_name,
+      e.quantity,
+      formatCurrency(e.total),
+      e.status.toUpperCase()
+    ]);
+
+    doc.autoTable({
+      startY: 45,
+      head: [['Date', 'Category', 'Qty', 'Amount', 'Status']],
+      body: tableData,
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 10;
+    const total = entries.reduce((acc, curr) => acc + parseFloat(curr.total), 0);
+    doc.setFontSize(14);
+    doc.text(`Total Amount: ${formatCurrency(total)}`, 14, finalY);
+
+    doc.save(`SalarySlip_${name}_${new Date().getTime()}.pdf`);
+  }
+
+  async function exportFullReport() {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Payroll Summary');
+    
+    sheet.columns = [
+      { header: 'Karigar Name', key: 'name', width: 25 },
+      { header: 'Unpaid Amount', key: 'unpaid', width: 15 },
+      { header: 'Paid Amount', key: 'paid', width: 15 },
+      { header: 'Total Entries', key: 'entries', width: 15 }
+    ];
+
+    const data = await apiGet('/api/payroll/summary');
+    data.forEach(item => {
+      sheet.addRow({
+        name: item.name,
+        unpaid: item.unpaid_amount,
+        paid: item.paid_amount,
+        entries: item.total_entries
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `PayrollReport_${new Date().getTime()}.xlsx`;
+    anchor.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  loadPayroll();
+</script>
+</body>
+</html>

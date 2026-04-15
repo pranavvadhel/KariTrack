@@ -90,20 +90,34 @@ router.get('/work-entry', (req, res) => {
   sendAdminPage(res, 'work_entry.html');
 });
 
+const emailService = require('../services/emailService');
+
 // POST Work Entry
 router.post('/work-entry', async (req, res) => {
   const { karigar_id, category, quantity, date } = req.body;
   try {
-    const [catRows] = await db.query('SELECT price FROM categories WHERE id = ?', [category]);
+    const [catRows] = await db.query('SELECT name, price FROM categories WHERE id = ?', [category]);
     if (catRows.length === 0) return res.redirect('/admin/work-entry?error=Category+not+found');
+
+    const [userRows] = await db.query('SELECT name, email FROM karigars WHERE id = ?', [karigar_id]);
+    if (userRows.length === 0) return res.redirect('/admin/work-entry?error=Karigar+not+found');
 
     const price_per_item = parseFloat(catRows[0].price);
     const total = price_per_item * parseInt(quantity);
 
     await db.query(
-      'INSERT INTO work_entries (karigar_id, category, quantity, price_per_item, total, date) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO work_entries (karigar_id, category, quantity, price_per_item, total, date, status) VALUES (?, ?, ?, ?, ?, ?, "unpaid")',
       [karigar_id, category, quantity, price_per_item, total, date]
     );
+
+    // Send Real-time notification
+    emailService.sendWorkLogNotification(userRows[0].email, userRows[0].name, {
+      category_name: catRows[0].name,
+      quantity,
+      total,
+      date
+    }).catch(e => console.error('Notify Error:', e.message));
+
     res.redirect('/admin/work-entry?success=1');
   } catch (err) {
     console.error(err);
@@ -167,6 +181,10 @@ router.post('/delete-work/:id', async (req, res) => {
   } catch (err) {
     res.json({ success: false, error: err.message });
   }
+});
+
+router.get('/payroll', requireAdmin, (req, res) => {
+  res.sendFile(require('path').join(__dirname, '../views/admin/payroll.html'));
 });
 
 module.exports = router;

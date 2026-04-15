@@ -236,4 +236,52 @@ router.get('/karigar-records', requireKarigar, async (req, res) => {
   }
 });
 
+// ============ PAYROLL / SALARY ============
+router.get('/payroll/summary', requireAdmin, async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT k.id, k.name, k.mobile,
+             SUM(CASE WHEN we.status = 'unpaid' THEN we.total ELSE 0 END) as unpaid_amount,
+             SUM(CASE WHEN we.status = 'paid' THEN we.total ELSE 0 END) as paid_amount,
+             COUNT(we.id) as total_entries
+      FROM karigars k
+      LEFT JOIN work_entries we ON k.id = we.karigar_id
+      GROUP BY k.id
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/payroll/mark-paid', requireAdmin, async (req, res) => {
+  const { karigar_id, amount } = req.body;
+  try {
+    // Mark all currently unpaid entries as paid for this karigar
+    await db.query(
+      "UPDATE work_entries SET status = 'paid', paid_date = NOW() WHERE karigar_id = ? AND status = 'unpaid'",
+      [karigar_id]
+    );
+    res.json({ success: true, message: `Status updated for Karigar ID ${karigar_id}` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/payroll/karigar/:id/history', requireAdmin, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT we.*, c.name as category_name 
+       FROM work_entries we 
+       JOIN categories c ON we.category = c.id
+       WHERE we.karigar_id = ? 
+       ORDER BY we.date DESC`, 
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

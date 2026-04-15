@@ -18,21 +18,22 @@ router.get('/', (req, res) => {
 
 // POST - Karigar Login
 router.post('/login', async (req, res) => {
-  console.log('Karigar Login Attempt:', req.body);
   const { email, password, remember } = req.body;
+  const JWT_SECRET = process.env.JWT_SECRET || 'karitrack_jwt_special_2024';
   try {
     const [rows] = await db.query('SELECT id, name, password FROM karigars WHERE email = ?', [email]);
-    if (rows.length === 0) {
-      return res.redirect('/?error=User+not+found');
-    }
+    if (rows.length === 0) return res.redirect('/?error=User+not+found');
+    
     const user = rows[0];
     const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      return res.redirect('/?error=Invalid+password');
-    }
+    if (!match) return res.redirect('/?error=Invalid+password');
+    
     req.session.karigar_id = user.id;
     req.session.name = user.name;
     req.session.role = 'karigar';
+
+    const token = jwt.sign({ id: user.id, name: user.name, role: 'karigar' }, JWT_SECRET, { expiresIn: '7d' });
+    res.cookie('auth_token', token, { maxAge: 7 * 24 * 60 * 60 * 1000 });
 
     if (remember) {
       res.cookie('karigar_id', user.id, { maxAge: 30 * 24 * 60 * 60 * 1000 });
@@ -58,15 +59,19 @@ router.get('/admin-login', (req, res) => {
 
 // POST - Admin Login
 router.post('/admin-login', (req, res) => {
-  console.log('Admin Login Attempt:', req.body);
   const { email, password, remember } = req.body;
-  
   const adminId = process.env.ADMIN_ID || 'admin';
   const adminPass = process.env.ADMIN_PASS || '12345';
+  const JWT_SECRET = process.env.JWT_SECRET || 'karitrack_jwt_special_2024';
 
   if (email === adminId && password === adminPass) {
     req.session.admin_id = 'admin';
     req.session.admin_name = 'Admin';
+    req.session.role = 'admin';
+
+    const token = jwt.sign({ id: 'admin', role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
+    res.cookie('auth_token', token, { maxAge: 7 * 24 * 60 * 60 * 1000 });
+
     if (remember) {
       res.cookie('admin_id', 'admin', { maxAge: 30 * 24 * 60 * 60 * 1000 });
       res.cookie('admin_name', 'Admin', { maxAge: 30 * 24 * 60 * 60 * 1000 });

@@ -6,6 +6,7 @@ function renderAdminSidebar(activePage) {
     { href: '/admin/add-karigar', icon: '➕', label: 'Add Karigar', key: 'add-karigar' },
     { href: '/admin/work-entry', icon: '📝', label: 'Add Work', key: 'work-entry' },
     { href: '/admin/reports', icon: '📈', label: 'Performance', key: 'reports' },
+    { href: '/admin/payroll', icon: '💰', label: 'Payroll', key: 'payroll' },
     { href: '/admin/categories', icon: '🏷️', label: 'Categories', key: 'categories' },
   ];
 
