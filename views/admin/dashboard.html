@@ -118,7 +118,10 @@
     }
 
     const data = await apiGet(url);
-    if (!data) return;
+    if (!data) {
+      document.getElementById('statsGrid').innerHTML = '<div class="alert alert-danger">⚠️ Failed to load dashboard stats. Please check your database connection or try again.</div>';
+      return;
+    }
 
     // Stats Grid
     document.getElementById('statsGrid').innerHTML = `

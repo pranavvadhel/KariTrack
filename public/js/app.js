@@ -93,9 +93,23 @@ function showAlert(containerId, msg, type = 'success') {
 }
 
 async function apiGet(url) {
-  const res = await fetch(url);
-  if (res.status === 401) { location.href = '/'; return null; }
-  return res.json();
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (res.status === 401) { location.href = '/'; return null; }
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Server error');
+    }
+    return res.json();
+  } catch (err) {
+    console.error('API Get Error:', err);
+    return null;
+  }
 }
 
 async function apiPost(url, data) {
