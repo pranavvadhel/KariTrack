@@ -15,11 +15,25 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Session
+const MySQLStore = require('express-mysql-session')(session);
+const sessionOptions = {
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT) || 3306,
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASS || '',
+  database: process.env.DB_NAME || 'shirt_business'
+};
+const sessionStore = new MySQLStore(sessionOptions);
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'karitrack_secret',
+  store: sessionStore,
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 1 day
+  cookie: { 
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    secure: process.env.NODE_ENV === 'production' // Only send over HTTPS in production
+  }
 }));
 
 // View engine
