@@ -60,7 +60,11 @@ router.get('/admin-login', (req, res) => {
 router.post('/admin-login', (req, res) => {
   console.log('Admin Login Attempt:', req.body);
   const { email, password, remember } = req.body;
-  if (email === 'admin' && password === '12345') {
+  
+  const adminId = process.env.ADMIN_ID || 'admin';
+  const adminPass = process.env.ADMIN_PASS || '12345';
+
+  if (email === adminId && password === adminPass) {
     req.session.admin_id = 'admin';
     req.session.admin_name = 'Admin';
     if (remember) {
