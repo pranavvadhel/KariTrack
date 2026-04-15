@@ -26,32 +26,30 @@ app.use(session({
 app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'views'));
 
-// Make session available in all views (by passing to routes)
+// Make session available in all views
 app.use((req, res, next) => {
   res.locals.session = req.session;
   next();
 });
 
 // Routes
-const authRoutes = require('./routes/auth');
-const adminRoutes = require('./routes/admin');
-const karigarRoutes = require('./routes/karigar');
-const apiRoutes = require('./routes/api');
+app.use('/', require('./routes/auth'));
+app.use('/admin', require('./routes/admin'));
+app.use('/karigar', require('./routes/karigar'));
+app.use('/api', require('./routes/api'));
 
-app.use('/', authRoutes);
-app.use('/admin', adminRoutes);
-app.use('/karigar', karigarRoutes);
-app.use('/api', apiRoutes);
-
-// Test DB connection & start server
-db.query('SELECT 1')
-  .then(() => {
-    console.log('✅ MySQL connected successfully');
-    app.listen(PORT, () => {
-      console.log(`🚀 KariTrack server running at http://localhost:${PORT}`);
+// Export for Vercel
+if (process.env.NODE_ENV !== 'production') {
+  db.query('SELECT 1')
+    .then(() => {
+      console.log('✅ MySQL connected successfully');
+      app.listen(PORT, () => {
+        console.log(`🚀 KariTrack server running at http://localhost:${PORT}`);
+      });
+    })
+    .catch(err => {
+      console.error('❌ MySQL connection failed:', err.message);
     });
-  })
-  .catch(err => {
-    console.error('❌ MySQL connection failed:', err.message);
-    process.exit(1);
-  });
+}
+
+module.exports = app;
