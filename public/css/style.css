@@ -122,8 +122,47 @@ body {
 .sidebar-nav .nav-logout {
   color: #f87171;
   margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-.sidebar-nav .nav-logout:hover {
+
+.logout-gate {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.gate-door {
+  position: absolute;
+  inset: 0;
+  border: 2px solid currentColor;
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+  transition: transform 0.3s ease;
+  transform-origin: left;
+}
+
+.gate-arrow {
+  font-size: 1rem;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: block;
+}
+
+.nav-logout:hover .gate-door {
+  transform: rotateY(-60deg);
+}
+
+.nav-logout:hover .gate-arrow {
+  transform: translateX(12px);
+  opacity: 0;
+}
+
+.nav-logout:hover {
   background: rgba(239, 68, 68, 0.1);
   border-left-color: var(--danger);
   color: var(--danger);
