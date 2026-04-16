@@ -1,6 +1,6 @@
 // Theme Management
 function initTheme() {
-  const theme = localStorage.getItem('karitrack_theme') || 'dark';
+  const theme = localStorage.getItem('karitrack_theme') || 'light';
   document.body.setAttribute('data-theme', theme);
   // Also set on documentElement to be safe
   document.documentElement.setAttribute('data-theme', theme);
