@@ -8,6 +8,30 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+  <style>
+    @media (max-width: 640px) {
+      .table-scroll table, thead, tbody, th, td, tr { display: block; }
+      thead tr { display: none; }
+      tbody tr {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 14px;
+        padding: 14px;
+      }
+      tbody td {
+        border: none; padding: 5px 0;
+        font-size: 0.88rem; width: 100%;
+      }
+      tbody td[data-label]::before {
+        content: attr(data-label) ": ";
+        font-weight: 700; font-size: 0.72rem;
+        color: var(--text-muted); text-transform: uppercase;
+        letter-spacing: 0.5px; display: block;
+        margin-bottom: 2px;
+      }
+    }
+  </style>
 </head>
 <body>
 <div id="sidebar-container"></div>
@@ -15,16 +39,16 @@
 <div class="main-content">
   <div class="topbar">
     <h1>💰 Payroll Management</h1>
-    <div class="topbar-actions">
-      <button class="btn btn-outline-primary" onclick="exportFullReport()">📊 Export Full Report</button>
+    <div>
+      <button class="btn btn-secondary" onclick="exportFullReport()">📊 Export Report</button>
     </div>
   </div>
 
   <div id="alert-box"></div>
 
-  <div class="card">
-    <div class="table-responsive">
-      <table class="table">
+  <div class="table-wrapper">
+    <div class="table-scroll">
+      <table>
         <thead>
           <tr>
             <th>Karigar Name</th>
@@ -35,7 +59,7 @@
           </tr>
         </thead>
         <tbody id="payrollTable">
-          <tr><td colspan="5" class="text-center">Loading payroll...</td></tr>
+          <tr><td colspan="5"><div class="loading"><div class="spinner"></div> Loading...</div></td></tr>
         </tbody>
       </table>
     </div>
@@ -85,10 +109,10 @@
     const tbody = document.getElementById('payrollTable');
     tbody.innerHTML = data.map(item => `
       <tr>
-        <td><strong>${item.name}</strong><br><small class="text-muted">${item.mobile}</small></td>
-        <td class="text-danger font-bold">${formatCurrency(item.unpaid_amount)}</td>
-        <td class="text-success">${formatCurrency(item.paid_amount)}</td>
-        <td>${item.total_entries} logs</td>
+        <td data-label="Karigar"><strong>${item.name}</strong><br><small class="text-muted">${item.mobile}</small></td>
+        <td data-label="Unpaid" class="text-danger fw-bold">${formatCurrency(item.unpaid_amount)}</td>
+        <td data-label="Paid" class="text-success">${formatCurrency(item.paid_amount)}</td>
+        <td data-label="Entries">${item.total_entries} logs</td>
         <td>
           <button class="btn btn-sm btn-primary" onclick="viewHistory(${item.id}, '${item.name}', ${item.unpaid_amount})">View Details</button>
         </td>

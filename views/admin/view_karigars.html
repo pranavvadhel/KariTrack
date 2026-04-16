@@ -5,6 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KariTrack - View Karigars</title>
   <link rel="stylesheet" href="/css/style.css"/>
+  <style>
+    @media (max-width: 640px) {
+      .table-scroll table, thead, tbody, th, td, tr { display: block; }
+      thead tr { display: none; }
+      tbody tr {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        padding: 14px;
+        display: flex; flex-wrap: wrap; gap: 6px;
+      }
+      tbody td { 
+        border: none; padding: 4px 0;
+        font-size: 0.88rem; width: 100%;
+      }
+      tbody td[data-label]::before {
+        content: attr(data-label) ": ";
+        font-weight: 700; font-size: 0.72rem;
+        color: var(--text-muted); text-transform: uppercase;
+        letter-spacing: 0.5px; display: block;
+        margin-bottom: 2px;
+      }
+      tbody td.actions-cell { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
+    }
+  </style>
 </head>
 <body>
 <div id="sidebar-container"></div>
@@ -82,11 +108,11 @@
 
     tbody.innerHTML = data.map((k, i) => `
       <tr>
-        <td>${i + 1}</td>
-        <td><a href="/admin/karigar-profile/${k.id}" class="text-primary">${k.name}</a></td>
-        <td>${k.mobile || '-'}</td>
-        <td>${k.email}</td>
-        <td>
+        <td data-label="#">${i + 1}</td>
+        <td data-label="Name"><a href="/admin/karigar-profile/${k.id}" class="text-primary">${k.name}</a></td>
+        <td data-label="Phone">${k.mobile || '-'}</td>
+        <td data-label="Email">${k.email}</td>
+        <td class="actions-cell">
           <a href="/admin/edit-karigar/${k.id}" class="btn btn-warning btn-sm">✏️ Edit</a>
           <button class="btn btn-danger btn-sm" onclick="openDeleteModal(${k.id})">🗑️ Delete</button>
         </td>

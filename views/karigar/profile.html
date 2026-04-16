@@ -55,9 +55,16 @@
     }
     .otp-hint label { color: var(--primary); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
     .otp-hint p { color: var(--text-muted); font-size: 0.75rem; margin-top: 6px; }
+    .pw-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; align-items: end; }
+
     @media (max-width: 768px) {
       .profile-grid { grid-template-columns: 1fr; }
       .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
+      .pw-grid { grid-template-columns: 1fr 1fr; }
+      .pw-grid .pw-submit { grid-column: 1 / -1; }
+    }
+    @media (max-width: 480px) {
+      .pw-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -133,7 +140,7 @@
       <!-- Password Card (full width) -->
       <div class="card" style="grid-column: 1 / -1;">
         <h3 class="section-title"><span>🔒</span> Change Password</h3>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:16px; align-items:end;">
+        <div class="pw-grid">
           <div class="form-group">
             <label>Current Password</label>
             <div class="password-field-wrapper">
@@ -155,9 +162,11 @@
               <span class="password-toggle" onclick="togglePassword('confirm-password', this)"></span>
             </div>
           </div>
-          <button class="btn btn-danger" onclick="savePassword()" style="height:44px;">
-            🔑 Update Password
-          </button>
+          <div class="pw-submit">
+            <button class="btn btn-danger btn-w100" onclick="savePassword()" style="height:44px;">
+              🔑 Update Password
+            </button>
+          </div>
         </div>
         <p class="text-muted" style="font-size:0.8rem; margin-top:12px;">✅ Your session stays active after a password change.</p>
       </div>
