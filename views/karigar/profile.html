@@ -133,18 +133,25 @@
       <!-- Password Card (full width) -->
       <div class="card" style="grid-column: 1 / -1;">
         <h3 class="section-title"><span>🔒</span> Change Password</h3>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; align-items:end;">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:16px; align-items:end;">
+          <div class="form-group">
+            <label>Current Password</label>
+            <div class="password-field-wrapper">
+              <input type="password" id="current-password" class="form-control" placeholder="Your current password"/>
+              <span class="password-toggle" onclick="togglePassword('current-password', this)"></span>
+            </div>
+          </div>
           <div class="form-group">
             <label>New Password</label>
             <div class="password-field-wrapper">
-              <input type="password" id="password" class="form-control" placeholder="••••••••"/>
+              <input type="password" id="password" class="form-control" placeholder="Min. 6 characters"/>
               <span class="password-toggle" onclick="togglePassword('password', this)"></span>
             </div>
           </div>
           <div class="form-group">
-            <label>Confirm Password</label>
+            <label>Confirm New Password</label>
             <div class="password-field-wrapper">
-              <input type="password" id="confirm-password" class="form-control" placeholder="••••••••"/>
+              <input type="password" id="confirm-password" class="form-control" placeholder="Repeat new password"/>
               <span class="password-toggle" onclick="togglePassword('confirm-password', this)"></span>
             </div>
           </div>
@@ -152,7 +159,7 @@
             🔑 Update Password
           </button>
         </div>
-        <p class="text-muted" style="font-size:0.8rem; margin-top:12px;">⚠️ Your session stays active after a password change. No logout required.</p>
+        <p class="text-muted" style="font-size:0.8rem; margin-top:12px;">✅ Your session stays active after a password change.</p>
       </div>
 
     </div>
@@ -236,21 +243,25 @@
     }
   }
 
-  // ─── Password Change (no logout!) ─────────────────────────────
+  // ─── Password Change (requires current password, no logout!) ──
   async function savePassword() {
-    const pw = document.getElementById('password').value;
+    const cur = document.getElementById('current-password').value;
+    const pw  = document.getElementById('password').value;
     const cpw = document.getElementById('confirm-password').value;
-    if (!pw) return showAlert('alert-box', 'New password cannot be empty', 'danger');
-    if (pw !== cpw) return showAlert('alert-box', 'Passwords do not match', 'danger');
-    if (pw.length < 6) return showAlert('alert-box', 'Password must be at least 6 characters', 'danger');
 
-    const res = await apiPost('/api/karigar/update-password', { password: pw });
+    if (!cur) return showAlert('alert-box', 'Please enter your current password first.', 'danger');
+    if (!pw)  return showAlert('alert-box', 'New password cannot be empty.', 'danger');
+    if (pw !== cpw) return showAlert('alert-box', 'New passwords do not match.', 'danger');
+    if (pw.length < 6) return showAlert('alert-box', 'New password must be at least 6 characters.', 'danger');
+
+    const res = await apiPost('/api/karigar/update-password', { current_password: cur, password: pw });
     if (res.success) {
-      showAlert('alert-box', 'Password changed successfully! You remain logged in.', 'success');
+      showAlert('alert-box', '🎉 Password changed successfully! You remain logged in.', 'success');
+      document.getElementById('current-password').value = '';
       document.getElementById('password').value = '';
       document.getElementById('confirm-password').value = '';
     } else {
-      showAlert('alert-box', res.error || 'Failed to change password', 'danger');
+      showAlert('alert-box', res.error || 'Failed to change password.', 'danger');
     }
   }
 

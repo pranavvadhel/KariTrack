@@ -66,7 +66,20 @@ function renderAdminSidebar(activePage) {
         <a href="/logout" class="nav-logout">
           <span>Log Out</span>
           <div class="logout-gate">
-            <span class="gate-arrow">🚶</span>
+            <svg class="gate-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <!-- Head -->
+              <circle cx="10" cy="4" r="1.5" fill="currentColor" stroke="none"/>
+              <!-- Body -->
+              <path d="M10 6.5 L10 13"/>
+              <!-- Left arm -->
+              <path d="M10 8.5 L7 11"/>
+              <!-- Right arm (forward) -->
+              <path d="M10 8.5 L14 10"/>
+              <!-- Left leg (back) -->
+              <path d="M10 13 L7.5 16.5"/>
+              <!-- Right leg (forward step) -->
+              <path d="M10 13 L12.5 16.5"/>
+            </svg>
             <div class="gate-door-img"></div>
           </div>
         </a>
@@ -103,7 +116,20 @@ function renderKarigarSidebar(activePage) {
         <a href="/logout" class="nav-logout">
           <span>Log Out</span>
           <div class="logout-gate">
-            <span class="gate-arrow">🚶</span>
+            <svg class="gate-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <!-- Head -->
+              <circle cx="10" cy="4" r="1.5" fill="currentColor" stroke="none"/>
+              <!-- Body -->
+              <path d="M10 6.5 L10 13"/>
+              <!-- Left arm -->
+              <path d="M10 8.5 L7 11"/>
+              <!-- Right arm (forward) -->
+              <path d="M10 8.5 L14 10"/>
+              <!-- Left leg (back) -->
+              <path d="M10 13 L7.5 16.5"/>
+              <!-- Right leg (forward step) -->
+              <path d="M10 13 L12.5 16.5"/>
+            </svg>
             <div class="gate-door-img"></div>
           </div>
         </a>

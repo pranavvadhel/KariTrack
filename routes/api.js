@@ -357,19 +357,29 @@ router.post('/karigar/update-email', requireKarigar, async (req, res) => {
   }
 });
 
-// POST update password only — no logout required
+// POST update password only — requires current password, no logout
 router.post('/karigar/update-password', requireKarigar, async (req, res) => {
-  const { password } = req.body;
+  const { current_password, password } = req.body;
   const id = req.session.karigar_id;
 
+  if (!current_password) {
+    return res.status(400).json({ success: false, error: 'Please enter your current password.' });
+  }
   if (!password || password.trim().length < 6) {
-    return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.' });
+    return res.status(400).json({ success: false, error: 'New password must be at least 6 characters.' });
   }
 
   try {
+    const [rows] = await db.query('SELECT password FROM karigars WHERE id = ?', [id]);
+    if (rows.length === 0) return res.status(404).json({ success: false, error: 'User not found.' });
+
+    const isMatch = await bcrypt.compare(current_password, rows[0].password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, error: 'Current password is incorrect.' });
+    }
+
     const hashed = await bcrypt.hash(password.trim(), 10);
     await db.query('UPDATE karigars SET password = ? WHERE id = ?', [hashed, id]);
-    // Session stays alive — no logout
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -377,4 +387,5 @@ router.post('/karigar/update-password', requireKarigar, async (req, res) => {
 });
 
 module.exports = router;
+
 
