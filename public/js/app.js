@@ -164,6 +164,7 @@ function toggleSidebar() {
   
   sidebar.classList.toggle('open');
   overlay.classList.toggle('show');
+  if(btn) btn.classList.toggle('open');
   
   if (sidebar.classList.contains('open')) {
     btn.textContent = '✕';

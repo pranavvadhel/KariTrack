@@ -743,6 +743,10 @@ a.text-primary:hover { text-decoration: underline; }
     padding-top: 70px;
   }
   .nav-toggle { display: flex; align-items: center; justify-content: center; }
+  .nav-toggle.open { 
+    left: 226px; 
+    background: var(--danger) !important;
+  }
   .topbar h1 { padding-left: 54px; }
   .card-grid { grid-template-columns: 1fr 1fr; }
   .form-row { grid-template-columns: 1fr; }
