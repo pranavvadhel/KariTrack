@@ -238,16 +238,63 @@ router.get('/karigar-records', requireKarigar, async (req, res) => {
 
 // ============ PAYROLL / SALARY ============
 router.get('/payroll/summary', requireAdmin, async (req, res) => {
+  const { search, month, start_date, end_date } = req.query;
+  
+  let conditions = [];
+  let params = [];
+
+  if (search) {
+    conditions.push('(k.name LIKE ? OR k.mobile LIKE ?)');
+    params.push(`%${search}%`, `%${search}%`);
+  }
+
+  let dateFilter = '';
+  if (month) {
+    conditions.push("DATE_FORMAT(we.date, '%Y-%m') = ?");
+    params.push(month);
+    dateFilter = "AND DATE_FORMAT(we.date, '%Y-%m') = ?";
+  } else if (start_date && end_date) {
+    conditions.push("we.date BETWEEN ? AND ?");
+    params.push(start_date, end_date);
+    dateFilter = "AND we.date BETWEEN ? AND ?";
+  }
+
+  // To build proper date filter for the LEFT JOIN
+  // Actually, filtering left join by date turns it into inner join unless we put the condition in the ON clause.
+  // We want to list all karigars if matching search, but only their work entries matching the date filter
+  
+  let karigarConditions = [];
+  let karigarParams = [];
+  if (search) {
+      karigarConditions.push('(k.name LIKE ? OR k.mobile LIKE ?)');
+      karigarParams.push(`%${search}%`, `%${search}%`);
+  }
+  let karigarWhere = karigarConditions.length > 0 ? 'WHERE ' + karigarConditions.join(' AND ') : '';
+
+  let weConditions = [];
+  let weParams = [];
+  if (month) {
+      weConditions.push("DATE_FORMAT(we.date, '%Y-%m') = ?");
+      weParams.push(month);
+  } else if (start_date && end_date) {
+      weConditions.push('we.date BETWEEN ? AND ?');
+      weParams.push(start_date, end_date);
+  }
+  let weWhere = weConditions.length > 0 ? 'AND ' + weConditions.join(' AND ') : '';
+
+  let allParams = [...karigarParams, ...weParams];
+
   try {
     const [rows] = await db.query(`
       SELECT k.id, k.name, k.mobile,
-             SUM(CASE WHEN we.status = 'unpaid' THEN we.total ELSE 0 END) as unpaid_amount,
-             SUM(CASE WHEN we.status = 'paid' THEN we.total ELSE 0 END) as paid_amount,
+             COALESCE(SUM(CASE WHEN we.status = 'unpaid' THEN we.total ELSE 0 END), 0) as unpaid_amount,
+             COALESCE(SUM(CASE WHEN we.status = 'paid' THEN we.total ELSE 0 END), 0) as paid_amount,
              COUNT(we.id) as total_entries
       FROM karigars k
-      LEFT JOIN work_entries we ON k.id = we.karigar_id
+      LEFT JOIN work_entries we ON k.id = we.karigar_id ${weWhere}
+      ${karigarWhere}
       GROUP BY k.id
-    `);
+    `, allParams);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -35,6 +35,34 @@
 
   <div id="alert-box"></div>
 
+  <!-- Filters Section -->
+  <div class="card mb-20">
+    <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end;">
+      <div style="flex: 1; min-width: 200px;">
+        <label style="font-weight:bold; font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Search</label>
+        <div class="search-input-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" class="form-control" placeholder="Search by name, phone..." oninput="loadPayroll()"/>
+        </div>
+      </div>
+      <div style="flex: 1; min-width: 150px;">
+        <label style="font-weight:bold; font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Filter by Month</label>
+        <input type="month" id="monthFilter" class="form-control" onchange="loadPayroll()"/>
+      </div>
+      <div style="flex: 1; min-width: 150px;">
+        <label style="font-weight:bold; font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">Start Date</label>
+        <input type="date" id="startDateFilter" class="form-control" onchange="document.getElementById('monthFilter').value=''; loadPayroll()"/>
+      </div>
+      <div style="flex: 1; min-width: 150px;">
+        <label style="font-weight:bold; font-size:0.85rem; color:var(--text-muted); display:block; margin-bottom:6px;">End Date</label>
+        <input type="date" id="endDateFilter" class="form-control" onchange="document.getElementById('monthFilter').value=''; loadPayroll()"/>
+      </div>
+      <div>
+        <button class="btn btn-outline-primary" style="height: 42px;" onclick="resetFilters()">Reset</button>
+      </div>
+    </div>
+  </div>
+
   <div class="table-wrapper">
     <div class="table-scroll">
       <table>
@@ -88,14 +116,44 @@
 
 <script src="/js/app.js"></script>
 <script>
-  document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('reports');
-    updateSidebarInfo();
+  document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('payroll');
+  updateSidebarInfo();
+
+  function getFilterQuery() {
+    const search = document.getElementById('searchInput').value;
+    const month = document.getElementById('monthFilter').value;
+    const startDate = document.getElementById('startDateFilter').value;
+    const endDate = document.getElementById('endDateFilter').value;
+
+    let query = new URLSearchParams();
+    if (search) query.append('search', search);
+    if (month) query.append('month', month);
+    if (startDate && endDate) {
+      query.append('start_date', startDate);
+      query.append('end_date', endDate);
+    }
+    return query.toString();
+  }
+
+  function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('monthFilter').value = '';
+    document.getElementById('startDateFilter').value = '';
+    document.getElementById('endDateFilter').value = '';
+    loadPayroll();
+  }
 
   async function loadPayroll() {
-    const data = await apiGet('/api/payroll/summary');
+    const query = getFilterQuery();
+    const data = await apiGet(`/api/payroll/summary?${query}`);
     if (!data) return;
 
     const tbody = document.getElementById('payrollTable');
+
+    if (data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">👷</div><p>No records found.</p></div></td></tr>`;
+      return;
+    }
     tbody.innerHTML = data.map(item => `
       <tr>
         <td data-label="Karigar"><strong>${item.name}</strong><br><small class="text-muted">${item.mobile}</small></td>
@@ -192,7 +250,9 @@
       { header: 'Total Entries', key: 'entries', width: 15 }
     ];
 
-    const data = await apiGet('/api/payroll/summary');
+    const query = getFilterQuery();
+    const data = await apiGet(`/api/payroll/summary?${query}`);
+    if (!data) return;
     data.forEach(item => {
       sheet.addRow({
         name: item.name,
