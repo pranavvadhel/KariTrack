@@ -59,11 +59,11 @@ function renderAdminSidebar(activePage) {
           </a>
         `).join('')}
         <a href="/logout" class="nav-logout">
+          <span>Log Out</span>
           <div class="logout-gate">
-            <div class="gate-door"></div>
             <span class="gate-arrow">🚶</span>
+            <div class="gate-door-img"></div>
           </div>
-          Logout
         </a>
         ${renderThemeToggle()}
       </nav>
@@ -96,11 +96,11 @@ function renderKarigarSidebar(activePage) {
           </a>
         `).join('')}
         <a href="/logout" class="nav-logout">
+          <span>Log Out</span>
           <div class="logout-gate">
-            <div class="gate-door"></div>
             <span class="gate-arrow">🚶</span>
+            <div class="gate-door-img"></div>
           </div>
-          Logout
         </a>
         ${renderThemeToggle()}
       </nav>
