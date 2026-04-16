@@ -41,6 +41,7 @@
 <script src="/js/app.js"></script>
 <script>
   document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('add-karigar');
+    updateSidebarInfo();
 
   const params = new URLSearchParams(location.search);
   if (params.get('error')) showAlert('alert-box', decodeURIComponent(params.get('error')).replace(/\+/g,' '), 'danger');

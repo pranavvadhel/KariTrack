@@ -76,6 +76,7 @@
 <script src="/js/app.js"></script>
 <script>
   document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('reports');
+    updateSidebarInfo();
 
   async function loadPayroll() {
     const data = await apiGet('/api/payroll/summary');

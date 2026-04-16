@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KariTrack - My Professional Profile</title>
+  <title>KariTrack - My Profile</title>
   <link rel="stylesheet" href="/css/style.css"/>
   <style>
     .profile-container { max-width: 900px; margin: 0 auto; }
@@ -31,10 +31,10 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 2.5rem; font-weight: 800; color: white;
       box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+      flex-shrink: 0;
     }
     .profile-info h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
     .profile-info p { color: var(--text-muted); font-size: 0.95rem; }
-    
     .profile-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -45,7 +45,16 @@
       display: flex; align-items: center; gap: 10px;
     }
     .section-title span { color: var(--primary); }
-
+    .otp-hint {
+      background: rgba(99,102,241,0.06);
+      border: 1px dashed var(--primary);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+      display: none;
+    }
+    .otp-hint label { color: var(--primary); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .otp-hint p { color: var(--text-muted); font-size: 0.75rem; margin-top: 6px; }
     @media (max-width: 768px) {
       .profile-grid { grid-template-columns: 1fr; }
       .profile-header { flex-direction: column; text-align: center; padding: 30px 20px; }
@@ -57,12 +66,14 @@
 
 <div class="main-content">
   <div class="profile-container">
+
+    <!-- Profile Header -->
     <div class="profile-header">
       <div class="profile-avatar-large" id="main-avatar">?</div>
       <div class="profile-info">
         <h2 id="display-name">Loading...</h2>
-        <p id="display-email">..._email_...</p>
-        <div class="mt-20">
+        <p id="display-email">...</p>
+        <div style="margin-top:14px">
           <span class="badge badge-primary">⭐ Verified Karigar</span>
         </div>
       </div>
@@ -70,52 +81,81 @@
 
     <div id="alert-box"></div>
 
-    <form id="profileForm">
-      <div class="profile-grid">
-        <!-- Personal Info -->
-        <div class="card">
-          <h3 class="section-title"><span>👤</span> Personal Information</h3>
-          <div class="form-group mb-20">
-            <label>Full Name</label>
-            <input type="text" id="name" name="name" class="form-control" required/>
-          </div>
-          <div class="form-group mb-20">
-            <label>Email Address</label>
-            <input type="email" id="email" name="email" class="form-control" required/>
-          </div>
-          <div class="form-group">
-            <label>Mobile Number</label>
-            <input type="text" id="mobile" class="form-control" readonly title="Mobile cannot be changed online"/>
-          </div>
+    <div class="profile-grid">
+
+      <!-- Personal Info Card -->
+      <div class="card">
+        <h3 class="section-title"><span>👤</span> Personal Information</h3>
+
+        <div class="form-group mb-20">
+          <label>Full Name</label>
+          <input type="text" id="name" class="form-control" placeholder="Your name"/>
+        </div>
+        <div class="form-group mb-20">
+          <label>Mobile Number</label>
+          <input type="text" id="mobile" class="form-control" readonly title="Contact admin to change"/>
+        </div>
+        <button class="btn btn-primary btn-w100" onclick="saveName()">
+          💾 Save Name
+        </button>
+      </div>
+
+      <!-- Email Card -->
+      <div class="card">
+        <h3 class="section-title"><span>📧</span> Change Email</h3>
+        <p class="text-muted mb-20" style="font-size:0.85rem;">An OTP will be sent to your <strong>current email</strong> to verify this change.</p>
+
+        <div class="form-group mb-20">
+          <label>Current Email</label>
+          <input type="email" id="current-email-display" class="form-control" readonly style="opacity:0.6"/>
+        </div>
+        <div class="form-group mb-20">
+          <label>New Email Address</label>
+          <input type="email" id="new-email" class="form-control" placeholder="Enter new email"/>
         </div>
 
-        <!-- Security -->
-        <div class="card">
-          <h3 class="section-title"><span>🔒</span> Security & Password</h3>
-          <div class="form-group mb-20">
-            <label>New Password (Optional)</label>
+        <div class="otp-hint" id="email-otp-box">
+          <label>Enter OTP</label>
+          <input type="text" id="email-otp" class="form-control" placeholder="6-digit code from your email" style="margin-top:8px"/>
+          <p>Valid for 10 minutes. Check your inbox.</p>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button class="btn btn-secondary" id="sendEmailOtpBtn" onclick="sendEmailOtp()" style="flex:1">
+            📨 Send OTP
+          </button>
+          <button class="btn btn-primary" id="confirmEmailBtn" onclick="confirmEmailChange()" style="flex:1; display:none">
+            ✅ Confirm
+          </button>
+        </div>
+      </div>
+
+      <!-- Password Card (full width) -->
+      <div class="card" style="grid-column: 1 / -1;">
+        <h3 class="section-title"><span>🔒</span> Change Password</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; align-items:end;">
+          <div class="form-group">
+            <label>New Password</label>
             <div class="password-field-wrapper">
-              <input type="password" id="password" name="password" class="form-control" placeholder="••••••••"/>
+              <input type="password" id="password" class="form-control" placeholder="••••••••"/>
               <span class="password-toggle" onclick="togglePassword('password', this)"></span>
             </div>
           </div>
-          <div class="form-group mb-20" id="otp-section" style="display:none; background:rgba(99,102,241,0.05); padding:15px; border-radius:12px; border:1px dashed var(--primary)">
-            <label style="color:var(--primary)">Enter Verification OTP</label>
-            <input type="text" id="otp" name="otp" class="form-control" placeholder="6-digit code sent to your email"/>
-            <p class="text-muted mt-20" style="font-size:0.75rem">We sent a security code to your registered email to authorize these changes.</p>
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <div class="password-field-wrapper">
+              <input type="password" id="confirm-password" class="form-control" placeholder="••••••••"/>
+              <span class="password-toggle" onclick="togglePassword('confirm-password', this)"></span>
+            </div>
           </div>
-          
-          <div id="action-buttons">
-            <button type="button" class="btn btn-secondary btn-w100 mb-20" onclick="requestOtp()" id="otpBtn">
-              📨 Request Verification OTP
-            </button>
-            <button type="submit" class="btn btn-primary btn-w100" id="saveBtn" disabled style="height: 46px; opacity: 0.5;">
-              ✅ Confirm & Save Changes
-            </button>
-          </div>
+          <button class="btn btn-danger" onclick="savePassword()" style="height:44px;">
+            🔑 Update Password
+          </button>
         </div>
+        <p class="text-muted" style="font-size:0.8rem; margin-top:12px;">⚠️ Your session stays active after a password change. No logout required.</p>
       </div>
-    </form>
+
+    </div>
   </div>
 </div>
 
@@ -124,69 +164,95 @@
   document.getElementById('sidebar-container').innerHTML = renderKarigarSidebar('profile');
   updateSidebarInfo();
 
+  let originalEmail = '';
+
   async function loadProfile() {
     const profile = await apiGet('/api/karigar/profile-details');
     if (profile) {
       document.getElementById('name').value = profile.name;
-      document.getElementById('email').value = profile.email;
-      document.getElementById('mobile').value = profile.mobile;
+      document.getElementById('mobile').value = profile.mobile || '';
+      document.getElementById('current-email-display').value = profile.email;
       document.getElementById('display-name').textContent = profile.name;
       document.getElementById('display-email').textContent = profile.email;
       document.getElementById('main-avatar').textContent = profile.name.charAt(0).toUpperCase();
+      originalEmail = profile.email;
     }
   }
 
-  async function requestOtp() {
-    const btn = document.getElementById('otpBtn');
-    btn.textContent = '⌛ Sending...';
-    btn.disabled = true;
+  // ─── Save Name Only ───────────────────────────────────────────
+  async function saveName() {
+    const name = document.getElementById('name').value.trim();
+    if (!name) return showAlert('alert-box', 'Name cannot be empty', 'danger');
+
+    const res = await apiPost('/api/karigar/update-name', { name });
+    if (res.success) {
+      showAlert('alert-box', 'Name updated!', 'success');
+      document.getElementById('display-name').textContent = name;
+      updateSidebarInfo();
+    } else {
+      showAlert('alert-box', res.error || 'Failed to update name', 'danger');
+    }
+  }
+
+  // ─── Email OTP Flow ───────────────────────────────────────────
+  async function sendEmailOtp() {
+    const newEmail = document.getElementById('new-email').value.trim();
+    if (!newEmail) return showAlert('alert-box', 'Please enter a new email address first.', 'danger');
+    if (newEmail === originalEmail) return showAlert('alert-box', 'New email is the same as current email.', 'danger');
+
+    const btn = document.getElementById('sendEmailOtpBtn');
+    btn.disabled = true; btn.textContent = '⌛ Sending...';
 
     const res = await apiPost('/api/karigar/request-profile-otp', {});
     if (res.success) {
-      showAlert('alert-box', res.message, 'info');
-      document.getElementById('otp-section').style.display = 'block';
-      document.getElementById('saveBtn').disabled = false;
-      document.getElementById('saveBtn').style.opacity = '1';
+      showAlert('alert-box', 'OTP sent to your current email!', 'info');
+      document.getElementById('email-otp-box').style.display = 'block';
+      document.getElementById('confirmEmailBtn').style.display = 'flex';
       btn.textContent = '📨 Resend OTP';
-      setTimeout(() => btn.disabled = false, 30000);
+      setTimeout(() => { btn.disabled = false; }, 30000);
     } else {
       showAlert('alert-box', res.error || 'Failed to send OTP', 'danger');
-      btn.textContent = '📨 Request Verification OTP';
+      btn.textContent = '📨 Send OTP';
       btn.disabled = false;
     }
   }
 
-  document.getElementById('profileForm').onsubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
+  async function confirmEmailChange() {
+    const newEmail = document.getElementById('new-email').value.trim();
+    const otp = document.getElementById('email-otp').value.trim();
+    if (!otp) return showAlert('alert-box', 'Enter the OTP from your email.', 'danger');
 
-    if (!data.otp) {
-      return showAlert('alert-box', 'Please enter the verification OTP first.', 'danger');
-    }
-
-    const res = await apiPost('/api/karigar/update-profile', data);
+    const res = await apiPost('/api/karigar/update-email', { email: newEmail, otp });
     if (res.success) {
-      const passwordChanged = data.password && data.password.trim().length > 0;
-
-      if (passwordChanged) {
-        showAlert('alert-box', 'Password changed! Logging you out in 3 seconds...', 'success');
-        setTimeout(() => location.href = '/logout', 3000);
-        return; // stop here, no need to refresh UI
-      }
-
-      showAlert('alert-box', 'Profile successfully updated!', 'success');
+      showAlert('alert-box', 'Email updated successfully!', 'success');
+      document.getElementById('email-otp-box').style.display = 'none';
+      document.getElementById('confirmEmailBtn').style.display = 'none';
+      document.getElementById('sendEmailOtpBtn').textContent = '📨 Send OTP';
+      document.getElementById('new-email').value = '';
+      document.getElementById('email-otp').value = '';
       loadProfile();
-      document.getElementById('otp-section').style.display = 'none';
-      document.getElementById('otp').value = '';
-      document.getElementById('otpBtn').textContent = '📨 Request Verification OTP';
-      document.getElementById('otpBtn').disabled = false;
-      document.getElementById('saveBtn').disabled = true;
-      document.getElementById('saveBtn').style.opacity = '0.5';
     } else {
-      showAlert('alert-box', res.error || 'Identity verification failed. Check your OTP.', 'danger');
+      showAlert('alert-box', res.error || 'Invalid OTP or verification failed', 'danger');
     }
-  };
+  }
+
+  // ─── Password Change (no logout!) ─────────────────────────────
+  async function savePassword() {
+    const pw = document.getElementById('password').value;
+    const cpw = document.getElementById('confirm-password').value;
+    if (!pw) return showAlert('alert-box', 'New password cannot be empty', 'danger');
+    if (pw !== cpw) return showAlert('alert-box', 'Passwords do not match', 'danger');
+    if (pw.length < 6) return showAlert('alert-box', 'Password must be at least 6 characters', 'danger');
+
+    const res = await apiPost('/api/karigar/update-password', { password: pw });
+    if (res.success) {
+      showAlert('alert-box', 'Password changed successfully! You remain logged in.', 'success');
+      document.getElementById('password').value = '';
+      document.getElementById('confirm-password').value = '';
+    } else {
+      showAlert('alert-box', res.error || 'Failed to change password', 'danger');
+    }
+  }
 
   loadProfile();
 </script>

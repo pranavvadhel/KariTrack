@@ -53,6 +53,7 @@
 <script src="/js/app.js"></script>
 <script>
   document.getElementById('sidebar-container').innerHTML = renderAdminSidebar('work-entry');
+    updateSidebarInfo();
 
   // Set today's date
   document.getElementById('dateInput').value = new Date().toISOString().split('T')[0];

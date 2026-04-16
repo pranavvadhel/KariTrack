@@ -284,7 +284,11 @@ router.get('/payroll/karigar/:id/history', requireAdmin, async (req, res) => {
   }
 });
 
-// ============ PROFILE MANAGEMENT (SECURE WITH OTP) ============
+// ============ PROFILE MANAGEMENT ============
+const emailService = require('../services/emailService');
+const bcrypt = require('bcryptjs');
+
+// GET profile details
 router.get('/karigar/profile-details', requireKarigar, async (req, res) => {
   try {
     const [rows] = await db.query('SELECT name, email, mobile FROM karigars WHERE id = ?', [req.session.karigar_id]);
@@ -294,53 +298,78 @@ router.get('/karigar/profile-details', requireKarigar, async (req, res) => {
   }
 });
 
-const emailService = require('../services/emailService');
+// POST update name only (no OTP needed)
+router.post('/karigar/update-name', requireKarigar, async (req, res) => {
+  const { name } = req.body;
+  const id = req.session.karigar_id;
+  if (!name || !name.trim()) return res.status(400).json({ success: false, error: 'Name is required' });
+  try {
+    await db.query('UPDATE karigars SET name = ? WHERE id = ?', [name.trim(), id]);
+    req.session.name = name.trim(); // keep session in sync
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
+// POST send OTP to current email (for email change only)
 router.post('/karigar/request-profile-otp', requireKarigar, async (req, res) => {
   const user_id = req.session.karigar_id;
   try {
     const [rows] = await db.query('SELECT email, name FROM karigars WHERE id = ?', [user_id]);
     if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
-    
+
     const user = rows[0];
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = Date.now() + 600000; // 10 min
 
     req.session.profile_otp = { code: otp, expiry, for_user: user_id };
-    
-    await emailService.sendResetOTP(user.email, user.name, otp); // Reusing Reset OTP email template
-    res.json({ success: true, message: 'Verification OTP sent to your email.' });
+    await emailService.sendResetOTP(user.email, user.name, otp);
+    res.json({ success: true, message: 'OTP sent to your current email.' });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-router.post('/karigar/update-profile', requireKarigar, async (req, res) => {
-  const { name, email, password, otp } = req.body;
+// POST confirm email change with OTP
+router.post('/karigar/update-email', requireKarigar, async (req, res) => {
+  const { email, otp } = req.body;
   const id = req.session.karigar_id;
 
-  // Verify OTP
   const sessionOtp = req.session.profile_otp;
   if (!sessionOtp || sessionOtp.code !== otp || sessionOtp.expiry < Date.now() || sessionOtp.for_user !== id) {
-    return res.status(400).json({ success: false, error: 'Invalid or expired OTP' });
+    return res.status(400).json({ success: false, error: 'Invalid or expired OTP. Please request a new one.' });
+  }
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ success: false, error: 'Please provide a valid email address.' });
   }
 
   try {
-    let query = 'UPDATE karigars SET name = ?, email = ?';
-    const params = [name, email];
-    
-    if (password) {
-      const bcrypt = require('bcryptjs');
-      const hashed = await bcrypt.hash(password, 10);
-      query += ', password = ?';
-      params.push(hashed);
-    }
-    
-    query += ' WHERE id = ?';
-    params.push(id);
-    
-    await db.query(query, params);
-    delete req.session.profile_otp; // Clear OTP
+    // Check if email is already taken
+    const [existing] = await db.query('SELECT id FROM karigars WHERE email = ? AND id != ?', [email, id]);
+    if (existing.length > 0) return res.status(400).json({ success: false, error: 'This email is already in use by another account.' });
+
+    await db.query('UPDATE karigars SET email = ? WHERE id = ?', [email, id]);
+    delete req.session.profile_otp;
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST update password only — no logout required
+router.post('/karigar/update-password', requireKarigar, async (req, res) => {
+  const { password } = req.body;
+  const id = req.session.karigar_id;
+
+  if (!password || password.trim().length < 6) {
+    return res.status(400).json({ success: false, error: 'Password must be at least 6 characters.' });
+  }
+
+  try {
+    const hashed = await bcrypt.hash(password.trim(), 10);
+    await db.query('UPDATE karigars SET password = ? WHERE id = ?', [hashed, id]);
+    // Session stays alive — no logout
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -348,3 +377,4 @@ router.post('/karigar/update-profile', requireKarigar, async (req, res) => {
 });
 
 module.exports = router;
+

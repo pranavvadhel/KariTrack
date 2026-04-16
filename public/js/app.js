@@ -49,8 +49,13 @@ function renderAdminSidebar(activePage) {
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <h4>🧵 KariTrack</h4>
-        <p>Admin Panel</p>
+        <div class="avatar-circle" style="background: linear-gradient(135deg, #6366f1, #06b6d4);">
+          <span id="sidebar-avatar">A</span>
+        </div>
+        <div>
+          <h4 style="cursor:default">KariTrack</h4>
+          <p id="sidebar-name" style="cursor:default; color:var(--primary-light); font-weight:600;">Admin Panel</p>
+        </div>
       </div>
       <nav class="sidebar-nav">
         ${links.map(l => `
@@ -108,14 +113,20 @@ function renderKarigarSidebar(activePage) {
   `;
 }
 
-// Helper to fetch user name for sidebar — call explicitly after sidebar render
+// Helper to fetch user/admin name for sidebar — call explicitly after sidebar render
 async function updateSidebarInfo() {
     const me = await apiGet('/api/me');
-    if (me && me.name) {
+    if (me) {
         const nameEl = document.getElementById('sidebar-name');
         const avatarEl = document.getElementById('sidebar-avatar');
-        if (nameEl) nameEl.textContent = me.name;
-        if (avatarEl) avatarEl.textContent = me.name.charAt(0).toUpperCase();
+        if (me.name) {
+            if (nameEl) nameEl.textContent = me.name;
+            if (avatarEl) avatarEl.textContent = me.name.charAt(0).toUpperCase();
+        } else if (me.role === 'admin') {
+            // Admin sessions return role but no name — use env-based admin id
+            if (nameEl) nameEl.textContent = 'Admin Panel';
+            if (avatarEl) avatarEl.textContent = 'A';
+        }
     }
 }
 
