@@ -1,4 +1,22 @@
-// Shared sidebar renderer for admin pages
+// Theme Management
+function initTheme() {
+  const theme = localStorage.getItem('karitrack_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('karitrack_theme', next);
+}
+
+// Global initialization
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+});
+
+// Update Sidebars to include Theme Toggle
 function renderAdminSidebar(activePage) {
   const links = [
     { href: '/admin/dashboard', icon: '📊', label: 'Dashboard', key: 'dashboard' },
@@ -24,6 +42,11 @@ function renderAdminSidebar(activePage) {
             <span class="nav-icon">${l.icon}</span>${l.label}
           </a>
         `).join('')}
+        <div style="padding: 10px 20px; border-top: 1px solid var(--border); margin-top: 10px;">
+          <button class="btn btn-secondary btn-sm btn-w100" onclick="toggleTheme()" style="gap:10px">
+            🌓 Switch Theme
+          </button>
+        </div>
         <a href="/logout" class="nav-logout">
           <span class="nav-icon">🚪</span>Logout
         </a>
@@ -51,6 +74,11 @@ function renderKarigarSidebar(activePage) {
             <span class="nav-icon">${l.icon}</span>${l.label}
           </a>
         `).join('')}
+        <div style="padding: 10px 20px; border-top: 1px solid var(--border); margin-top: 10px;">
+          <button class="btn btn-secondary btn-sm btn-w100" onclick="toggleTheme()" style="gap:10px">
+            🌓 Switch Theme
+          </button>
+        </div>
         <a href="/logout" class="nav-logout">
           <span class="nav-icon">🚪</span>Logout
         </a>
@@ -122,13 +150,23 @@ async function apiPost(url, data) {
   return res.json();
 }
 
+const EYE_OPEN = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+const EYE_CLOSED = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+
 function togglePassword(id, btn) {
   const input = document.getElementById(id);
   if (input.type === 'password') {
     input.type = 'text';
-    btn.textContent = '👁️';
+    btn.innerHTML = EYE_OPEN;
   } else {
     input.type = 'password';
-    btn.textContent = '👁️‍🗨️';
+    btn.innerHTML = EYE_CLOSED;
   }
 }
+
+// Wrap all eye toggles on page load
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.password-toggle').forEach(btn => {
+        btn.innerHTML = EYE_CLOSED;
+    });
+});
