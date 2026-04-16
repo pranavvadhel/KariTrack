@@ -42,7 +42,6 @@ function renderAdminSidebar(activePage) {
     { href: '/admin/reports', icon: '📈', label: 'Performance', key: 'reports' },
     { href: '/admin/payroll', icon: '💰', label: 'Payroll', key: 'payroll' },
     { href: '/admin/categories', icon: '🏷️', label: 'Categories', key: 'categories' },
-    { href: '/admin/sizes', icon: '📏', label: 'Sizes', key: 'sizes' },
   ];
 
   return `

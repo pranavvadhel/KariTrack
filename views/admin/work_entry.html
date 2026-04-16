@@ -31,8 +31,13 @@
       </div>
       <div class="form-group mb-20">
         <label>Size / Dimensions</label>
-        <select name="size" id="sizeSelect" class="form-select" onchange="toggleOtherSize()">
+        <select name="size" id="sizeSelect" class="form-select" required onchange="toggleOtherSize()">
           <option value="">-- Select Size --</option>
+          <option value="0 to 2">0 to 2</option>
+          <option value="3 to 8">3 to 8</option>
+          <option value="10 to 14">10 to 14</option>
+          <option value="10 to 18">10 to 18</option>
+          <option value="other">Other (Specify manually)</option>
         </select>
       </div>
       <div class="form-group mb-20" id="otherSizeGroup" style="display: none;">
@@ -74,10 +79,9 @@
   if (params.get('error')) showAlert('alert-box', decodeURIComponent(params.get('error')).replace(/\+/g,' '), 'danger');
 
   async function loadData() {
-    const [karigars, categories, sizes] = await Promise.all([
+    const [karigars, categories] = await Promise.all([
       apiGet('/api/karigars'),
-      apiGet('/api/categories'),
-      apiGet('/api/sizes')
+      apiGet('/api/categories')
     ]);
 
     const kSel = document.getElementById('karigarSelect');
@@ -85,10 +89,6 @@
 
     const cSel = document.getElementById('categorySelect');
     if (categories) categories.forEach(c => cSel.innerHTML += `<option value="${c.id}" data-price="${c.price}">${c.name} (₹${c.price})</option>`);
-
-    const sSel = document.getElementById('sizeSelect');
-    if (sizes) sizes.forEach(s => sSel.innerHTML += `<option value="${s.size_name}">${s.size_name}</option>`);
-    sSel.innerHTML += `<option value="other">Other (Specify manually)</option>`;
   }
 
   function toggleOtherSize() {
