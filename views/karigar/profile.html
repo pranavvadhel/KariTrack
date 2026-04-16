@@ -122,6 +122,7 @@
 <script src="/js/app.js"></script>
 <script>
   document.getElementById('sidebar-container').innerHTML = renderKarigarSidebar('profile');
+  updateSidebarInfo();
 
   async function loadProfile() {
     const profile = await apiGet('/api/karigar/profile-details');
@@ -166,19 +167,24 @@
 
     const res = await apiPost('/api/karigar/update-profile', data);
     if (res.success) {
-      showAlert('alert-box', 'Profile successfully secured and updated!', 'success');
+      const passwordChanged = data.password && data.password.trim().length > 0;
+
+      if (passwordChanged) {
+        showAlert('alert-box', 'Password changed! Logging you out in 3 seconds...', 'success');
+        setTimeout(() => location.href = '/logout', 3000);
+        return; // stop here, no need to refresh UI
+      }
+
+      showAlert('alert-box', 'Profile successfully updated!', 'success');
       loadProfile();
-      updateSidebarInfo();
       document.getElementById('otp-section').style.display = 'none';
       document.getElementById('otp').value = '';
+      document.getElementById('otpBtn').textContent = '📨 Request Verification OTP';
+      document.getElementById('otpBtn').disabled = false;
       document.getElementById('saveBtn').disabled = true;
       document.getElementById('saveBtn').style.opacity = '0.5';
-      
-      if (data.password) {
-        setTimeout(() => location.href = '/logout', 2000);
-      }
     } else {
-      showAlert('alert-box', res.error || 'Identity verification failed', 'danger');
+      showAlert('alert-box', res.error || 'Identity verification failed. Check your OTP.', 'danger');
     }
   };
 

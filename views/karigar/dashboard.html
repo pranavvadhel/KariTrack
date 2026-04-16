@@ -74,6 +74,7 @@
   <script src="/js/app.js"></script>
   <script>
     document.getElementById('sidebar-container').innerHTML = renderKarigarSidebar('dashboard');
+    updateSidebarInfo();
 
     async function init() {
       const me = await apiGet('/api/me');

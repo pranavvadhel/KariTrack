@@ -108,7 +108,7 @@ function renderKarigarSidebar(activePage) {
   `;
 }
 
-// Helper to fetch user name for sidebar
+// Helper to fetch user name for sidebar — call explicitly after sidebar render
 async function updateSidebarInfo() {
     const me = await apiGet('/api/me');
     if (me && me.name) {
@@ -118,7 +118,6 @@ async function updateSidebarInfo() {
         if (avatarEl) avatarEl.textContent = me.name.charAt(0).toUpperCase();
     }
 }
-document.addEventListener('DOMContentLoaded', updateSidebarInfo);
 
 
 function toggleSidebar() {
