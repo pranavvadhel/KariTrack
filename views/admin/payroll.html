@@ -9,27 +9,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   <style>
+    /* Compact horizontal-scroll table for mobile */
+    .table-scroll { 
+      overflow-x: auto; 
+      -webkit-overflow-scrolling: touch;
+    }
     @media (max-width: 640px) {
-      .table-scroll table, thead, tbody, th, td, tr { display: block; }
-      thead tr { display: none; }
-      tbody tr {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        margin-bottom: 14px;
-        padding: 14px;
-      }
-      tbody td {
-        border: none; padding: 5px 0;
-        font-size: 0.88rem; width: 100%;
-      }
-      tbody td[data-label]::before {
-        content: attr(data-label) ": ";
-        font-weight: 700; font-size: 0.72rem;
-        color: var(--text-muted); text-transform: uppercase;
-        letter-spacing: 0.5px; display: block;
-        margin-bottom: 2px;
-      }
+      tbody td { padding: 10px 10px; font-size: 0.82rem; }
+      thead th { padding: 10px 10px; font-size: 0.72rem; white-space: nowrap; }
+      .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+      table { min-width: 520px; }
     }
   </style>
 </head>
