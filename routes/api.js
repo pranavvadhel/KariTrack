@@ -236,32 +236,8 @@ router.get('/karigar-records', requireKarigar, async (req, res) => {
   }
 });
 
-// ============ PAYROLL / SALARY ============
 router.get('/payroll/summary', requireAdmin, async (req, res) => {
-  const { search, month, start_date, end_date } = req.query;
-  
-  let conditions = [];
-  let params = [];
-
-  if (search) {
-    conditions.push('(k.name LIKE ? OR k.mobile LIKE ?)');
-    params.push(`%${search}%`, `%${search}%`);
-  }
-
-  let dateFilter = '';
-  if (month) {
-    conditions.push("DATE_FORMAT(we.date, '%Y-%m') = ?");
-    params.push(month);
-    dateFilter = "AND DATE_FORMAT(we.date, '%Y-%m') = ?";
-  } else if (start_date && end_date) {
-    conditions.push("we.date BETWEEN ? AND ?");
-    params.push(start_date, end_date);
-    dateFilter = "AND we.date BETWEEN ? AND ?";
-  }
-
-  // To build proper date filter for the LEFT JOIN
-  // Actually, filtering left join by date turns it into inner join unless we put the condition in the ON clause.
-  // We want to list all karigars if matching search, but only their work entries matching the date filter
+  const { search, period, start_date, end_date } = req.query;
   
   let karigarConditions = [];
   let karigarParams = [];
@@ -273,10 +249,12 @@ router.get('/payroll/summary', requireAdmin, async (req, res) => {
 
   let weConditions = [];
   let weParams = [];
-  if (month) {
-      weConditions.push("DATE_FORMAT(we.date, '%Y-%m') = ?");
-      weParams.push(month);
-  } else if (start_date && end_date) {
+  
+  if (period === 'weekly') {
+      weConditions.push('we.date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)');
+  } else if (period === 'monthly') {
+      weConditions.push('we.date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)');
+  } else if (period === 'custom' && start_date && end_date) {
       weConditions.push('we.date BETWEEN ? AND ?');
       weParams.push(start_date, end_date);
   }
