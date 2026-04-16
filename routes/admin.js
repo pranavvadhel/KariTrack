@@ -94,7 +94,11 @@ const emailService = require('../services/emailService');
 
 // POST Work Entry
 router.post('/work-entry', async (req, res) => {
-  const { karigar_id, category, quantity, date } = req.body;
+  let { karigar_id, category, size, other_size, quantity, date } = req.body;
+  
+  // Resolve final size if "Other" is selected
+  const finalSize = size === 'other' ? other_size : size;
+
   try {
     const [catRows] = await db.query('SELECT name, price FROM categories WHERE id = ?', [category]);
     if (catRows.length === 0) return res.redirect('/admin/work-entry?error=Category+not+found');
@@ -106,13 +110,14 @@ router.post('/work-entry', async (req, res) => {
     const total = price_per_item * parseInt(quantity);
 
     await db.query(
-      'INSERT INTO work_entries (karigar_id, category, quantity, price_per_item, total, date, status) VALUES (?, ?, ?, ?, ?, ?, "unpaid")',
-      [karigar_id, category, quantity, price_per_item, total, date]
+      'INSERT INTO work_entries (karigar_id, category, size, quantity, price_per_item, total, date, status) VALUES (?, ?, ?, ?, ?, ?, ?, "unpaid")',
+      [karigar_id, category, finalSize, quantity, price_per_item, total, date]
     );
 
     // Send Real-time notification
     emailService.sendWorkLogNotification(userRows[0].email, userRows[0].name, {
       category_name: catRows[0].name,
+      size: finalSize,
       quantity,
       total,
       date
@@ -133,6 +138,11 @@ router.get('/reports', (req, res) => {
 // GET Categories
 router.get('/categories', (req, res) => {
   sendAdminPage(res, 'categories.html');
+});
+
+// GET Sizes Page
+router.get('/sizes', (req, res) => {
+  sendAdminPage(res, 'sizes.html');
 });
 
 // POST Add Category
@@ -166,6 +176,43 @@ router.post('/categories/delete/:id', async (req, res) => {
   const { id } = req.params;
   try {
     await db.query('DELETE FROM categories WHERE id = ?', [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
+
+// POST Add Size
+router.post('/sizes/add', async (req, res) => {
+  const { size_name } = req.body;
+  try {
+    const [existing] = await db.query('SELECT id FROM sizes WHERE size_name = ?', [size_name]);
+    if (existing.length > 0) {
+      return res.json({ success: false, error: 'Size already exists' });
+    }
+    const [result] = await db.query('INSERT INTO sizes (size_name) VALUES (?)', [size_name]);
+    res.json({ success: true, id: result.insertId });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
+
+// POST Update Size
+router.post('/sizes/update', async (req, res) => {
+  const { size_id, size_name } = req.body;
+  try {
+    await db.query('UPDATE sizes SET size_name = ? WHERE id = ?', [size_name, size_id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
+});
+
+// POST Delete Size
+router.post('/sizes/delete/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query('DELETE FROM sizes WHERE id = ?', [id]);
     res.json({ success: true });
   } catch (err) {
     res.json({ success: false, error: err.message });

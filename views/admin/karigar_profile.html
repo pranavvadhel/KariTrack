@@ -42,6 +42,7 @@
           <tr>
             <td>${i + 1}</td>
             <td>${r.category_name}</td>
+            <td>${r.size || '-'}</td>
             <td>${r.quantity}</td>
             <td>${formatCurrency(r.price_per_item)}</td>
             <td>${formatCurrency(r.total)}</td>
@@ -82,7 +83,7 @@
         <div class="table-scroll">
           <table>
             <thead>
-              <tr><th>#</th><th>Category</th><th>Quantity</th><th>Price/Item</th><th>Total</th><th>Date</th></tr>
+              <tr><th>#</th><th>Category</th><th>Size</th><th>Quantity</th><th>Price/Item</th><th>Total</th><th>Date</th></tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>

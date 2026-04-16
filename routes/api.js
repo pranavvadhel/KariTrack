@@ -24,6 +24,16 @@ router.get('/categories', async (req, res) => {
   }
 });
 
+// ============ SIZES ============
+router.get('/sizes', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM sizes ORDER BY size_name ASC');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/categories/:id/price', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT price FROM categories WHERE id = ?', [req.params.id]);
