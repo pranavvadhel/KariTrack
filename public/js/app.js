@@ -71,15 +71,19 @@ function renderKarigarSidebar(activePage) {
   const links = [
     { href: '/karigar/dashboard', icon: '📊', label: 'Dashboard', key: 'dashboard' },
     { href: '/karigar/my-records', icon: '📋', label: 'My Work', key: 'my-records' },
-    { href: '/karigar/profile', icon: '👤', label: 'My Profile', key: 'profile' },
   ];
   return `
     <button class="nav-toggle" id="navToggle" onclick="toggleSidebar()">☰</button>
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
-      <div class="sidebar-brand">
-        <h4>🧵 My Panel</h4>
-        <p>Karigar Dashboard</p>
+      <div class="sidebar-brand clickable" onclick="location.href='/karigar/profile'">
+        <div class="avatar-circle">
+          <span id="sidebar-avatar">K</span>
+        </div>
+        <div>
+          <h4>KariTrack</h4>
+          <p id="sidebar-name">Karigar Dashboard</p>
+        </div>
       </div>
       <nav class="sidebar-nav">
         ${links.map(l => `
@@ -95,6 +99,19 @@ function renderKarigarSidebar(activePage) {
     </div>
   `;
 }
+
+// Helper to fetch user name for sidebar
+async function updateSidebarInfo() {
+    const me = await apiGet('/api/me');
+    if (me && me.name) {
+        const nameEl = document.getElementById('sidebar-name');
+        const avatarEl = document.getElementById('sidebar-avatar');
+        if (nameEl) nameEl.textContent = me.name;
+        if (avatarEl) avatarEl.textContent = me.name.charAt(0).toUpperCase();
+    }
+}
+document.addEventListener('DOMContentLoaded', updateSidebarInfo);
+
 
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
