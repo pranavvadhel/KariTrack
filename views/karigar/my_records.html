@@ -11,6 +11,10 @@
 <div class="main-content">
   <div class="topbar">
     <h1>📋 My Work Records</h1>
+    <div class="user-badge clickable" onclick="location.href='/karigar/profile'" style="cursor:pointer">
+      <div class="badge-avatar" id="avatarInit">K</div>
+      <span id="userNameBadge">Karigar</span>
+    </div>
   </div>
 
   <!-- Summary -->
@@ -40,6 +44,15 @@
 <script src="/js/app.js"></script>
 <script>
   document.getElementById('sidebar-container').innerHTML = renderKarigarSidebar('my-records');
+
+  async function initUserBadge() {
+    const me = await apiGet('/api/me');
+    if (me) {
+      document.getElementById('userNameBadge').textContent = me.name;
+      document.getElementById('avatarInit').textContent = me.name.charAt(0).toUpperCase();
+    }
+  }
+  initUserBadge();
 
   async function loadRecords() {
     const data = await apiGet('/api/karigar-records');
