@@ -14,4 +14,8 @@ router.get('/my-records', (req, res) => {
   res.sendFile(path.join(__dirname, '../views/karigar/my_records.html'));
 });
 
+router.get('/profile', (req, res) => {
+  res.sendFile(path.join(__dirname, '../views/karigar/profile.html'));
+});
+
 module.exports = router;

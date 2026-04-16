@@ -284,4 +284,38 @@ router.get('/payroll/karigar/:id/history', requireAdmin, async (req, res) => {
   }
 });
 
+// ============ PROFILE MANAGEMENT ============
+router.get('/karigar/profile-details', requireKarigar, async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT name, email, mobile FROM karigars WHERE id = ?', [req.session.karigar_id]);
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+const bcrypt = require('bcryptjs');
+router.post('/karigar/update-profile', requireKarigar, async (req, res) => {
+  const { name, email, password } = req.body;
+  const id = req.session.karigar_id;
+  try {
+    let query = 'UPDATE karigars SET name = ?, email = ?';
+    const params = [name, email];
+    
+    if (password) {
+      const hashed = await bcrypt.hash(password, 10);
+      query += ', password = ?';
+      params.push(hashed);
+    }
+    
+    query += ' WHERE id = ?';
+    params.push(id);
+    
+    await db.query(query, params);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

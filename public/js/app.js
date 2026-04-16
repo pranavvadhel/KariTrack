@@ -1,12 +1,15 @@
 // Theme Management
 function initTheme() {
   const theme = localStorage.getItem('karitrack_theme') || 'dark';
+  document.body.setAttribute('data-theme', theme);
+  // Also set on documentElement to be safe
   document.documentElement.setAttribute('data-theme', theme);
 }
 
 function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
+  document.body.setAttribute('data-theme', next);
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('karitrack_theme', next);
 }
@@ -16,7 +19,20 @@ document.addEventListener('DOMContentLoaded', () => {
   initTheme();
 });
 
-// Update Sidebars to include Theme Toggle
+function renderThemeToggle() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  return `
+    <div class="theme-switch-wrapper">
+      <span>☀️ Light Mode</span>
+      <label class="switch">
+        <input type="checkbox" id="themeToggle" onchange="toggleTheme()" ${isLight ? 'checked' : ''}>
+        <span class="slider round"></span>
+      </label>
+    </div>
+  `;
+}
+
+// Update Sidebars to include Profile and Toggle after Logout
 function renderAdminSidebar(activePage) {
   const links = [
     { href: '/admin/dashboard', icon: '📊', label: 'Dashboard', key: 'dashboard' },
@@ -42,14 +58,10 @@ function renderAdminSidebar(activePage) {
             <span class="nav-icon">${l.icon}</span>${l.label}
           </a>
         `).join('')}
-        <div style="padding: 10px 20px; border-top: 1px solid var(--border); margin-top: 10px;">
-          <button class="btn btn-secondary btn-sm btn-w100" onclick="toggleTheme()" style="gap:10px">
-            🌓 Switch Theme
-          </button>
-        </div>
         <a href="/logout" class="nav-logout">
           <span class="nav-icon">🚪</span>Logout
         </a>
+        ${renderThemeToggle()}
       </nav>
     </div>
   `;
@@ -59,6 +71,7 @@ function renderKarigarSidebar(activePage) {
   const links = [
     { href: '/karigar/dashboard', icon: '📊', label: 'Dashboard', key: 'dashboard' },
     { href: '/karigar/my-records', icon: '📋', label: 'My Work', key: 'my-records' },
+    { href: '/karigar/profile', icon: '👤', label: 'My Profile', key: 'profile' },
   ];
   return `
     <button class="nav-toggle" id="navToggle" onclick="toggleSidebar()">☰</button>
@@ -74,14 +87,10 @@ function renderKarigarSidebar(activePage) {
             <span class="nav-icon">${l.icon}</span>${l.label}
           </a>
         `).join('')}
-        <div style="padding: 10px 20px; border-top: 1px solid var(--border); margin-top: 10px;">
-          <button class="btn btn-secondary btn-sm btn-w100" onclick="toggleTheme()" style="gap:10px">
-            🌓 Switch Theme
-          </button>
-        </div>
         <a href="/logout" class="nav-logout">
           <span class="nav-icon">🚪</span>Logout
         </a>
+        ${renderThemeToggle()}
       </nav>
     </div>
   `;
