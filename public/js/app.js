@@ -80,13 +80,13 @@ function renderKarigarSidebar(activePage) {
     <button class="nav-toggle" id="navToggle" onclick="toggleSidebar()">☰</button>
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
-      <div class="sidebar-brand clickable" onclick="location.href='/karigar/profile'">
+      <div class="sidebar-brand">
         <div class="avatar-circle">
           <span id="sidebar-avatar">K</span>
         </div>
         <div>
-          <h4>KariTrack</h4>
-          <p id="sidebar-name">Karigar Dashboard</p>
+          <h4 style="cursor:default">KariTrack</h4>
+          <p id="sidebar-name" style="cursor:pointer; color:var(--primary-light); font-weight:600;" onclick="location.href='/karigar/profile'">Karigar Dashboard</p>
         </div>
       </div>
       <nav class="sidebar-nav">

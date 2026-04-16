@@ -284,7 +284,7 @@ router.get('/payroll/karigar/:id/history', requireAdmin, async (req, res) => {
   }
 });
 
-// ============ PROFILE MANAGEMENT ============
+// ============ PROFILE MANAGEMENT (SECURE WITH OTP) ============
 router.get('/karigar/profile-details', requireKarigar, async (req, res) => {
   try {
     const [rows] = await db.query('SELECT name, email, mobile FROM karigars WHERE id = ?', [req.session.karigar_id]);
@@ -294,15 +294,43 @@ router.get('/karigar/profile-details', requireKarigar, async (req, res) => {
   }
 });
 
-const bcrypt = require('bcryptjs');
+const emailService = require('../services/emailService');
+
+router.post('/karigar/request-profile-otp', requireKarigar, async (req, res) => {
+  const user_id = req.session.karigar_id;
+  try {
+    const [rows] = await db.query('SELECT email, name FROM karigars WHERE id = ?', [user_id]);
+    if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    
+    const user = rows[0];
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = Date.now() + 600000; // 10 min
+
+    req.session.profile_otp = { code: otp, expiry, for_user: user_id };
+    
+    await emailService.sendResetOTP(user.email, user.name, otp); // Reusing Reset OTP email template
+    res.json({ success: true, message: 'Verification OTP sent to your email.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.post('/karigar/update-profile', requireKarigar, async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, otp } = req.body;
   const id = req.session.karigar_id;
+
+  // Verify OTP
+  const sessionOtp = req.session.profile_otp;
+  if (!sessionOtp || sessionOtp.code !== otp || sessionOtp.expiry < Date.now() || sessionOtp.for_user !== id) {
+    return res.status(400).json({ success: false, error: 'Invalid or expired OTP' });
+  }
+
   try {
     let query = 'UPDATE karigars SET name = ?, email = ?';
     const params = [name, email];
     
     if (password) {
+      const bcrypt = require('bcryptjs');
       const hashed = await bcrypt.hash(password, 10);
       query += ', password = ?';
       params.push(hashed);
@@ -312,6 +340,7 @@ router.post('/karigar/update-profile', requireKarigar, async (req, res) => {
     params.push(id);
     
     await db.query(query, params);
+    delete req.session.profile_otp; // Clear OTP
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

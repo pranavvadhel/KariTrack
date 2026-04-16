@@ -86,31 +86,33 @@
           <div class="form-group">
             <label>Mobile Number</label>
             <input type="text" id="mobile" class="form-control" readonly title="Mobile cannot be changed online"/>
-            <small class="text-muted">Contact admin to change mobile number.</small>
           </div>
         </div>
 
         <!-- Security -->
         <div class="card">
           <h3 class="section-title"><span>🔒</span> Security & Password</h3>
-          <p class="text-muted mb-20" style="font-size: 0.85rem;">Update your password regularly to keep your account safe.</p>
           <div class="form-group mb-20">
-            <label>New Password</label>
+            <label>New Password (Optional)</label>
             <div class="password-field-wrapper">
               <input type="password" id="password" name="password" class="form-control" placeholder="••••••••"/>
               <span class="password-toggle" onclick="togglePassword('password', this)"></span>
             </div>
           </div>
-          <div class="form-group mb-20">
-            <label>Confirm Password</label>
-            <div class="password-field-wrapper">
-              <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="••••••••"/>
-              <span class="password-toggle" onclick="togglePassword('confirm_password', this)"></span>
-            </div>
+          <div class="form-group mb-20" id="otp-section" style="display:none; background:rgba(99,102,241,0.05); padding:15px; border-radius:12px; border:1px dashed var(--primary)">
+            <label style="color:var(--primary)">Enter Verification OTP</label>
+            <input type="text" id="otp" name="otp" class="form-control" placeholder="6-digit code sent to your email"/>
+            <p class="text-muted mt-20" style="font-size:0.75rem">We sent a security code to your registered email to authorize these changes.</p>
           </div>
-          <button type="submit" class="btn btn-primary btn-w100" style="height: 46px; margin-top: 10px;">
-            ✨ Save All Changes
-          </button>
+          
+          <div id="action-buttons">
+            <button type="button" class="btn btn-secondary btn-w100 mb-20" onclick="requestOtp()" id="otpBtn">
+              📨 Request Verification OTP
+            </button>
+            <button type="submit" class="btn btn-primary btn-w100" id="saveBtn" disabled style="height: 46px; opacity: 0.5;">
+              ✅ Confirm & Save Changes
+            </button>
+          </div>
         </div>
       </div>
     </form>
@@ -127,10 +129,29 @@
       document.getElementById('name').value = profile.name;
       document.getElementById('email').value = profile.email;
       document.getElementById('mobile').value = profile.mobile;
-      
       document.getElementById('display-name').textContent = profile.name;
       document.getElementById('display-email').textContent = profile.email;
       document.getElementById('main-avatar').textContent = profile.name.charAt(0).toUpperCase();
+    }
+  }
+
+  async function requestOtp() {
+    const btn = document.getElementById('otpBtn');
+    btn.textContent = '⌛ Sending...';
+    btn.disabled = true;
+
+    const res = await apiPost('/api/karigar/request-profile-otp', {});
+    if (res.success) {
+      showAlert('alert-box', res.message, 'info');
+      document.getElementById('otp-section').style.display = 'block';
+      document.getElementById('saveBtn').disabled = false;
+      document.getElementById('saveBtn').style.opacity = '1';
+      btn.textContent = '📨 Resend OTP';
+      setTimeout(() => btn.disabled = false, 30000);
+    } else {
+      showAlert('alert-box', res.error || 'Failed to send OTP', 'danger');
+      btn.textContent = '📨 Request Verification OTP';
+      btn.disabled = false;
     }
   }
 
@@ -139,24 +160,25 @@
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
 
-    if (data.password && data.password !== data.confirm_password) {
-      return showAlert('alert-box', 'Passwords do not match', 'danger');
+    if (!data.otp) {
+      return showAlert('alert-box', 'Please enter the verification OTP first.', 'danger');
     }
 
     const res = await apiPost('/api/karigar/update-profile', data);
     if (res.success) {
-      showAlert('alert-box', 'Profile successfully updated!', 'success');
-      loadProfile(); // Refresh UI
-      updateSidebarInfo(); // Refresh sidebar
+      showAlert('alert-box', 'Profile successfully secured and updated!', 'success');
+      loadProfile();
+      updateSidebarInfo();
+      document.getElementById('otp-section').style.display = 'none';
+      document.getElementById('otp').value = '';
+      document.getElementById('saveBtn').disabled = true;
+      document.getElementById('saveBtn').style.opacity = '0.5';
       
       if (data.password) {
-        setTimeout(() => {
-            alert('Password changed. Please login again.');
-            location.href = '/logout';
-        }, 1500);
+        setTimeout(() => location.href = '/logout', 2000);
       }
     } else {
-      showAlert('alert-box', res.error || 'Update failed', 'danger');
+      showAlert('alert-box', res.error || 'Identity verification failed', 'danger');
     }
   };
 
