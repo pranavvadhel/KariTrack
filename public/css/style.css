@@ -639,7 +639,9 @@ a.text-primary:hover { text-decoration: underline; }
 .auth-wrapper {
   display: flex; min-height: 100vh;
   align-items: center; justify-content: center;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Ctext x='40' y='40' font-size='45' opacity='0.06' transform='rotate(-15, 40, 40)'%3E%F0%9F%A7%B5%3C/text%3E%3Ctext x='130' y='130' font-size='35' opacity='0.04' transform='rotate(25, 130, 130)'%3E%F0%9F%A7%B5%3C/text%3E%3C/svg%3E");
+  background-attachment: fixed;
   padding: 20px;
 }
 
