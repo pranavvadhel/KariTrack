@@ -50,17 +50,21 @@ app.use('/karigar', require('./routes/karigar'));
 app.use('/api', require('./routes/api'));
 
 // Export for Vercel
-if (process.env.NODE_ENV !== 'production') {
-  db.query('SELECT 1')
-    .then(() => {
-      console.log('✅ MySQL connected successfully');
+db.query('SELECT 1')
+  .then(async () => {
+    console.log('✅ MySQL connected successfully');
+    const { runMigrations } = require('./utils/dbMigrations');
+    await runMigrations();
+    
+    if (process.env.NODE_ENV !== 'production') {
       app.listen(PORT, () => {
         console.log(`🚀 KariTrack server running at http://localhost:${PORT}`);
       });
-    })
-    .catch(err => {
-      console.error('❌ MySQL connection failed:', err.message);
-    });
-}
+    }
+  })
+  .catch(err => {
+    console.error('❌ MySQL connection failed:', err.message);
+  });
+
 
 module.exports = app;
