@@ -1,9 +1,21 @@
 // Theme Management
+function getMobileThemeIcon() {
+  const isLight = (localStorage.getItem('karitrack_theme') || 'light') === 'light';
+  return isLight ? '🌙' : '☀️';
+}
+
+function updateMobileThemeIcon() {
+  const btn = document.getElementById('mobileThemeBtn');
+  if (!btn) return;
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  btn.textContent = isLight ? '🌙' : '☀️';
+}
+
 function initTheme() {
   const theme = localStorage.getItem('karitrack_theme') || 'light';
   document.body.setAttribute('data-theme', theme);
-  // Also set on documentElement to be safe
   document.documentElement.setAttribute('data-theme', theme);
+  updateMobileThemeIcon();
 }
 
 function toggleTheme() {
@@ -12,6 +24,7 @@ function toggleTheme() {
   document.body.setAttribute('data-theme', next);
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('karitrack_theme', next);
+  updateMobileThemeIcon();
 }
 
 // Global initialization
@@ -32,14 +45,36 @@ function renderThemeToggle() {
   `;
 }
 
-// Update Sidebars to include Profile and Toggle after Logout
+// Shared logout + mobile theme button block
+function renderNavActions() {
+  return `
+    <div class="nav-actions">
+      <button class="mobile-theme-btn" id="mobileThemeBtn" onclick="toggleTheme()">${getMobileThemeIcon()}</button>
+      <a href="/logout" class="nav-logout">
+        <span>Log Out</span>
+        <div class="logout-gate">
+          <svg class="gate-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10" cy="4" r="1.5" fill="currentColor" stroke="none"/>
+            <path d="M10 6.5 L10 13"/>
+            <path d="M10 8.5 L7 11"/>
+            <path d="M10 8.5 L14 10"/>
+            <path d="M10 13 L7.5 16.5"/>
+            <path d="M10 13 L12.5 16.5"/>
+          </svg>
+          <div class="gate-door-img"></div>
+        </div>
+      </a>
+    </div>
+  `;
+}
+
+// Admin Sidebar
 function renderAdminSidebar(activePage) {
   const links = [
     { href: '/admin/dashboard', icon: '📊', label: 'Dashboard', key: 'dashboard' },
-    { href: '/admin/karigars', icon: '👷', label: 'View Karigars', key: 'karigars' },
-    { href: '/admin/add-karigar', icon: '➕', label: 'Add Karigar', key: 'add-karigar' },
-    { href: '/admin/work-entry', icon: '📝', label: 'Add Work', key: 'work-entry' },
-    { href: '/admin/reports', icon: '📈', label: 'Performance', key: 'reports' },
+    { href: '/admin/karigars', icon: '👷', label: 'Karigars', key: 'karigars' },
+    { href: '/admin/add-karigar', icon: '➕', label: 'Add', key: 'add-karigar' },
+    { href: '/admin/work-entry', icon: '📝', label: 'Work', key: 'work-entry' },
     { href: '/admin/payroll', icon: '💰', label: 'Payroll', key: 'payroll' },
     { href: '/admin/categories', icon: '🏷️', label: 'Categories', key: 'categories' },
   ];
@@ -63,32 +98,14 @@ function renderAdminSidebar(activePage) {
             <span class="nav-icon">${l.icon}</span>${l.label}
           </a>
         `).join('')}
-        <a href="/logout" class="nav-logout">
-          <span>Log Out</span>
-          <div class="logout-gate">
-            <svg class="gate-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <!-- Head -->
-              <circle cx="10" cy="4" r="1.5" fill="currentColor" stroke="none"/>
-              <!-- Body -->
-              <path d="M10 6.5 L10 13"/>
-              <!-- Left arm -->
-              <path d="M10 8.5 L7 11"/>
-              <!-- Right arm (forward) -->
-              <path d="M10 8.5 L14 10"/>
-              <!-- Left leg (back) -->
-              <path d="M10 13 L7.5 16.5"/>
-              <!-- Right leg (forward step) -->
-              <path d="M10 13 L12.5 16.5"/>
-            </svg>
-            <div class="gate-door-img"></div>
-          </div>
-        </a>
         ${renderThemeToggle()}
       </nav>
     </div>
+    ${renderNavActions()}
   `;
 }
 
+// Karigar Sidebar
 function renderKarigarSidebar(activePage) {
   const links = [
     { href: '/karigar/dashboard', icon: '📊', label: 'Dashboard', key: 'dashboard' },
@@ -113,29 +130,10 @@ function renderKarigarSidebar(activePage) {
             <span class="nav-icon">${l.icon}</span>${l.label}
           </a>
         `).join('')}
-        <a href="/logout" class="nav-logout">
-          <span>Log Out</span>
-          <div class="logout-gate">
-            <svg class="gate-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <!-- Head -->
-              <circle cx="10" cy="4" r="1.5" fill="currentColor" stroke="none"/>
-              <!-- Body -->
-              <path d="M10 6.5 L10 13"/>
-              <!-- Left arm -->
-              <path d="M10 8.5 L7 11"/>
-              <!-- Right arm (forward) -->
-              <path d="M10 8.5 L14 10"/>
-              <!-- Left leg (back) -->
-              <path d="M10 13 L7.5 16.5"/>
-              <!-- Right leg (forward step) -->
-              <path d="M10 13 L12.5 16.5"/>
-            </svg>
-            <div class="gate-door-img"></div>
-          </div>
-        </a>
         ${renderThemeToggle()}
       </nav>
     </div>
+    ${renderNavActions()}
   `;
 }
 

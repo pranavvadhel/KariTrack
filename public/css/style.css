@@ -121,10 +121,26 @@ body {
 
 .sidebar-nav a .nav-icon { font-size: 1.1rem; width: 22px; text-align: center; }
 
-.sidebar-nav .nav-logout {
+/* Desktop: wrapper holds logout at bottom of sidebar column */
+.nav-actions {
+  position: fixed;
+  bottom: 16px;
+  left: 20px;
+  width: calc(var(--sidebar-width) - 40px);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Mobile theme icon — hidden on desktop (sidebar has full theme switch) */
+.mobile-theme-btn {
+  display: none;
+}
+
+.nav-logout {
   background: white;
   color: var(--primary);
-  margin: 16px 20px;
   padding: 10px 16px;
   border-radius: 12px;
   display: flex;
@@ -135,13 +151,15 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   transition: all 0.3s ease;
   border: none;
+  width: 100%;
 }
 
-.sidebar-nav .nav-logout:hover {
+.nav-logout:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.15);
   background: white;
 }
+
 
 .logout-gate {
   display: flex;
@@ -720,46 +738,154 @@ a.text-primary:hover { text-decoration: underline; }
 }
 
 @media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
-    width: 280px;
-  }
-  .sidebar.open {
-    transform: translateX(0);
-    box-shadow: 10px 0 40px rgba(0,0,0,0.6);
-  }
-  
-  /* Overlay when sidebar open */
-  .sidebar-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(2px);
-    z-index: 90;
-  }
-  .sidebar-overlay.show { display: block; }
+  /* ===== BOTTOM NAV BAR ===== */
 
+  /* Hide hamburger toggle & overlay — not needed with bottom nav */
+  .nav-toggle { display: none !important; }
+  .sidebar-overlay { display: none !important; }
+
+  /* Transform sidebar into a fixed bottom navigation bar */
+  .sidebar {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 64px;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    transform: none !important;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+    z-index: 1000;
+  }
+
+  /* Hide brand section (logo + title) in bottom nav */
+  .sidebar-brand { display: none; }
+
+  /* Hide theme toggle in bottom nav */
+  .theme-switch-wrapper { display: none !important; }
+
+  /* Nav becomes a non-scrollable horizontal row — all items side by side */
+  .sidebar-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-evenly;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  /* Each nav link becomes an icon+label column */
+  .sidebar-nav a {
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px 2px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    border-left: none;
+    border-top: 3px solid transparent;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+
+  .sidebar-nav a:hover,
+  .sidebar-nav a.active {
+    border-left-color: transparent;
+    border-top-color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+  }
+
+  /* Make nav icons slightly larger in bottom nav */
+  .sidebar-nav a .nav-icon {
+    font-size: 1.25rem;
+    width: auto;
+  }
+
+  /* ===== TOP-RIGHT ACTIONS (logout + theme icon) ===== */
+  .nav-actions {
+    position: fixed !important;
+    top: 12px !important;
+    right: 12px !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: auto !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    z-index: 2000;
+  }
+
+  /* Small circular theme toggle button */
+  .mobile-theme-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .mobile-theme-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+
+  /* Logout pill style on mobile */
+  .nav-logout {
+    width: auto !important;
+    padding: 8px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  /* Hide the animated door/gate icon in the floating button */
+  .nav-logout .logout-gate { display: none; }
+
+  .nav-logout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99,102,241,0.3);
+    background: var(--primary);
+    color: white;
+  }
+
+
+  /* Adjust main content so it doesn't go under the bottom nav */
   .main-content {
     margin-left: 0;
     padding: 16px;
-    padding-top: 70px;
+    padding-top: 16px;
+    padding-bottom: 80px;
   }
-  .nav-toggle { display: flex; align-items: center; justify-content: center; }
-  .nav-toggle.open { 
-    left: 226px; 
-    background: var(--danger) !important;
-  }
-  .topbar h1 { padding-left: 54px; }
+
+  .topbar h1 { padding-left: 0; }
   .card-grid { grid-template-columns: 1fr 1fr; }
   .form-row { grid-template-columns: 1fr; }
-  
+
   .topbar {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
   .topbar .user-badge { align-self: flex-start; }
-  
+
   .table-header { flex-direction: column; align-items: flex-start; }
   .search-input-wrapper { max-width: 100%; width: 100%; }
 }
@@ -770,6 +896,11 @@ a.text-primary:hover { text-decoration: underline; }
   .topbar h1 { font-size: 1.4rem; }
   .stat-card { padding: 18px; }
   .modal-box { padding: 20px; margin: 0 16px; }
+  /* Ensure bottom nav and logout button look good on small screens */
+  .sidebar { height: 60px; }
+  .sidebar-nav a { font-size: 0.58rem; padding: 6px 2px; }
+  .sidebar-nav a .nav-icon { font-size: 1.2rem; }
+  .nav-logout { padding: 7px 12px; font-size: 0.76rem; }
 }
 
 /* ===== EMPTY STATE ===== */
